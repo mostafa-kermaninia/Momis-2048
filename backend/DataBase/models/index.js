@@ -1,6 +1,7 @@
 // Import the sequelize instance
 const sequelize = require('../database');
 
+
 // Import all models
 const User = require('./User');
 const Score = require('./Score');
