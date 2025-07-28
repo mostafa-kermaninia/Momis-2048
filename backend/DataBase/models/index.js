@@ -10,6 +10,7 @@ const Reward = require('./Reward');
 // Create an object to hold our models and sequelize instance
 const db = {};
 
+
 // Add models to the db object
 db.User = User;
 db.Score = Score;
