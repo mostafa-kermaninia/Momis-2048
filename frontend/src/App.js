@@ -1,13 +1,17 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import Leaderboard from "./components/Leaderboard";
-import GameLobby from "./components/GameLobby";
-import ColorPads from "./components/ColorPads"; // کامپوننت جدید بازی
-import DefaultAvatar from "./assets/default-avatar.png";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API_BASE = "https://momis2048.momis.studio/api"; // یا آدرس بک‌اند شما
+// کامپوننت‌های اصلی برنامه
+import Game from "./components/Game"; // <-- کامپوننت بازی 2048 جایگزین شده است
+import GameLobby from "./components/GameLobby";
+import Leaderboard from "./components/Leaderboard";
+import DefaultAvatar from "./assets/default-avatar.png";
+
+// آدرس API بک‌اند شما (دست‌نخورده)
+const API_BASE = "https://momis2048.momis.studio/api";
 
 function App() {
+    // --- State های اصلی مدیریت برنامه (دست‌نخورده) ---
     const [view, setView] = useState("auth"); // auth, lobby, game, board
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [authLoading, setAuthLoading] = useState(true);
@@ -16,160 +20,14 @@ function App() {
         const saved = localStorage.getItem("userData");
         return saved ? JSON.parse(saved) : null;
     });
-    const [token, setToken] = useState(
-        () => localStorage.getItem("jwtToken") || null
-    );
+    const [token, setToken] = useState(() => localStorage.getItem("jwtToken") || null);
+    
+    // --- State های مربوط به بازی و لیدربورد (منطق اصلی حفظ شده) ---
     const [leaderboardKey, setLeaderboardKey] = useState(Date.now());
     const [currentGameEventId, setCurrentGameEventId] = useState(null);
+    const [finalScore, setFinalScore] = useState(null); // این state برای نمایش امتیاز در لیدربورد لازم است
 
-    const [sequence, setSequence] = useState([]);
-    const [playerSequence, setPlayerSequence] = useState([]);
-    const [level, setLevel] = useState(0);
-    const [isPlayerTurn, setIsPlayerTurn] = useState(false);
-    const [litPad, setLitPad] = useState(null);
-    const [message, setMessage] = useState("حافظه رنگ‌ها");
-    const [finalScore, setFinalScore] = useState(null);
-
-    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-    const playSequence = useCallback(async (currentSequence) => {
-        setIsPlayerTurn(false);
-        setMessage("Watch Closely...");
-        await sleep(1000);
-        for (const color of currentSequence) {
-            setLitPad(color);
-            await sleep(400);
-            setLitPad(null);
-            await sleep(200);
-        }
-        setMessage("Your turn!");
-        setIsPlayerTurn(true);
-        setPlayerSequence([]);
-    }, []);
-
-    const nextLevel = useCallback(() => {
-        console.log(
-            `%c[nextLevel] Starting. Current level: ${level}, Sequence length: ${sequence.length}`,
-            "color: #FF8C00;"
-        );
-
-        const colors = ["green", "red", "yellow", "blue"];
-        const nextColor = colors[Math.floor(Math.random() * colors.length)];
-
-        setSequence((prevSequence) => {
-            const newSequence = [...prevSequence, nextColor];
-            playSequence(newSequence);
-            return newSequence;
-        });
-
-        setLevel((prevLevel) => prevLevel + 1);
-    }, [playSequence, level, sequence.length]);
-
-    const handleGameOver = useCallback(
-        async (score) => {
-            console.log(
-                `%c[handleGameOver] Game Over. Final Score to be saved: ${score}`,
-                "color: #DC143C;"
-            );
-
-            setMessage(`You lose! Your reach level ${score}`);
-            setFinalScore(score);
-            setIsPlayerTurn(false);
-
-            if (score > 0 && token) {
-                try {
-                    await fetch(`${API_BASE}/gameOver`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({
-                            score: score,
-                            eventId: currentGameEventId,
-                        }),
-                    });
-                } catch (err) {
-                    console.error("Failed to save score:", err);
-                    setError("Error in saving the score");
-                }
-            }
-
-            setTimeout(() => {
-                setView("board");
-                setLeaderboardKey(Date.now());
-            }, 500);
-        },
-        [token, currentGameEventId]
-    );
-
-    const handlePadClick = useCallback(
-        (color) => {
-            if (!isPlayerTurn) return;
-
-            const newPlayerSequence = [...playerSequence, color];
-            setPlayerSequence(newPlayerSequence);
-
-            setLitPad(color);
-            setTimeout(() => setLitPad(null), 200);
-
-            if (
-                newPlayerSequence[newPlayerSequence.length - 1] !==
-                sequence[newPlayerSequence.length - 1]
-            ) {
-                handleGameOver(level - 1);
-                return;
-            }
-
-            if (newPlayerSequence.length === sequence.length) {
-                setIsPlayerTurn(false);
-                setTimeout(nextLevel, 500);
-            }
-        },
-        [
-            isPlayerTurn,
-            playerSequence,
-            sequence,
-            level,
-            nextLevel,
-            handleGameOver,
-        ]
-    );
-
-    const startGame = useCallback(
-        (eventId) => {
-            console.log(
-                `%c[startGame] STARTING NEW GAME. State BEFORE reset: level=${level}, sequence length=${sequence.length}`,
-                "color: #00FF7F; font-weight: bold;"
-            );
-
-            setCurrentGameEventId(eventId);
-
-            if (!isAuthenticated || !token) {
-                setError("Please authenticate first");
-                setView("auth");
-                return;
-            }
-
-            setSequence([]);
-            setPlayerSequence([]);
-            setLevel(0);
-            setFinalScore(null);
-
-            setView("game");
-            setMessage("Ready?");
-
-            setTimeout(() => {
-                console.log(
-                    `%c[startGame -> setTimeout] Calling nextLevel(). State SHOULD BE reset now.`,
-                    "color: #1E90FF;"
-                );
-
-                nextLevel();
-            }, 1500);
-        },
-        [nextLevel, isAuthenticated, token, level, sequence.length]
-    );
+    // --- منطق اصلی احراز هویت (کاملاً دست‌نخورده) ---
     const authenticateUser = useCallback(async () => {
         setAuthLoading(true);
         setError(null);
@@ -177,6 +35,7 @@ function App() {
             const initData = window.Telegram?.WebApp?.initData;
             if (!initData) {
                 console.warn("Running in non-Telegram environment.");
+                // برای تست در محیط غیر تلگرام، می‌توانیم لاگین را شبیه‌سازی کنیم
                 setIsAuthenticated(true);
                 setView("lobby");
                 setAuthLoading(false);
@@ -209,7 +68,61 @@ function App() {
             setAuthLoading(false);
         }
     }, []);
+    
+    // --- مدیریت شروع بازی (ساده‌سازی شده برای بازی 2048) ---
+    const startGame = useCallback((eventId) => {
+        console.log(`%c[startGame] Starting new 2048 game for event: ${eventId}`, "color: #00FF7F; font-weight: bold;");
+        
+        setCurrentGameEventId(eventId);
+        setFinalScore(null); // ریست کردن امتیاز نهایی قبل از شروع بازی جدید
+        
+        if (!isAuthenticated) {
+            setError("Please authenticate first");
+            setView("auth");
+            return;
+        }
+        
+        setView("game"); // انتقال کاربر به صفحه بازی
+    }, [isAuthenticated]);
 
+    // --- مدیریت پایان بازی و ارسال امتیاز (منطق اصلی حفظ شده) ---
+    const handleGameEnd = useCallback(async (score) => {
+        console.log(`%c[handleGameEnd] 2048 Game Over. Final Score to send: ${score}`, "color: #DC143C;");
+        
+        setFinalScore(score); // ذخیره امتیاز برای نمایش در لیدربورد
+        
+        // منطق ارسال امتیاز به سرور کاملاً دست‌نخورده باقی مانده است
+        if (score > 0 && token) {
+            try {
+                const response = await fetch(`${API_BASE}/gameOver`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        score: score,
+                        eventId: currentGameEventId,
+                    }),
+                });
+                const result = await response.json();
+                console.log("Score submission result:", result);
+                // بعد از ارسال موفق امتیاز، کلید لیدربورد را تغییر می‌دهیم تا رفرش شود
+                setLeaderboardKey(Date.now());
+            } catch (err) {
+                console.error("Failed to save score:", err);
+                setError("Error in saving the score");
+            }
+        }
+        
+        // بعد از یک تاخیر کوتاه، به صفحه لیدربورد منتقل شو
+        setTimeout(() => {
+            setView("board");
+        }, 500);
+
+    }, [token, currentGameEventId]);
+
+    // --- توابع کمکی (دست‌نخورده) ---
     const handleLogout = useCallback(() => {
         localStorage.removeItem("jwtToken");
         localStorage.removeItem("userData");
@@ -225,6 +138,7 @@ function App() {
         }
     }, []);
 
+    // --- Effect برای بررسی وضعیت لاگین کاربر (دست‌نخورده) ---
     useEffect(() => {
         if (token && userData) {
             setIsAuthenticated(true);
@@ -234,102 +148,42 @@ function App() {
             authenticateUser();
         }
     }, [authenticateUser, token, userData]);
-    // frontend/src/App.js
 
-    const authContent = useMemo(
-        () =>
-            view === "auth" && (
-                <div className="flex flex-col items-center justify-center text-center h-screen px-4">
-                    <motion.h1
-                        className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500"
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                    >
-                        Color Memory
-                    </motion.h1>
-                    <motion.p
-                        className="text-lg text-gray-300 mb-8"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
-                    >
-                        Ready to challenge your mind?
-                    </motion.p>
 
-                    {authLoading ? (
-                        <p className="text-lg text-gray-400 animate-pulse">
-                            Connecting...
-                        </p>
-                    ) : (
-                        <motion.button
-                            onClick={authenticateUser}
-                            className="px-8 py-3 bg-blue-600 text-white rounded-xl text-xl font-bold shadow-lg hover:bg-blue-700 transition-all duration-300"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            Login with Telegram
-                        </motion.button>
-                    )}
+    // --- رندر کردن محتوای هر صفحه با استفاده از useMemo برای بهینه‌سازی ---
+    const authContent = useMemo(() => view === "auth" && (
+        <div className="flex flex-col items-center justify-center text-center h-screen px-4">
+            <motion.h1 className="text-6xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-orange-500" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                2048
+            </motion.h1>
+            <motion.p className="text-lg text-gray-300 mb-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.2 }}>
+                Join the numbers and get to the 2048 tile!
+            </motion.p>
+            {authLoading ? (
+                <p className="text-lg text-gray-400 animate-pulse">Connecting...</p>
+            ) : (
+                <motion.button onClick={authenticateUser} className="px-8 py-3 bg-orange-600 text-white rounded-xl text-xl font-bold shadow-lg hover:bg-orange-700 transition-all duration-300" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    Login with Telegram
+                </motion.button>
+            )}
+            {error && <p className="text-red-400 mt-4">{error}</p>}
+        </div>
+    ), [view, authLoading, error, authenticateUser]);
 
-                    {error && <p className="text-red-400 mt-4">{error}</p>}
-                </div>
-            ),
-        [view, authLoading, error, authenticateUser]
-    );
+    const lobbyContent = useMemo(() => view === "lobby" && (
+        <GameLobby onGameStart={startGame} userData={userData} onLogout={handleLogout} onImageError={handleImageError} />
+    ), [view, startGame, userData, handleLogout, handleImageError]);
 
-    const lobbyContent = useMemo(
-        () =>
-            view === "lobby" && (
-                <GameLobby
-                    onGameStart={startGame}
-                    userData={userData}
-                    onLogout={handleLogout}
-                    onImageError={handleImageError}
-                />
-            ),
-        [view, startGame, userData, handleLogout, handleImageError]
-    );
+    const gameContent = useMemo(() => view === "game" && (
+        // کامپوننت بازی 2048 با پراپ‌های مورد نیاز رندر می‌شود
+        <Game onGameOver={handleGameEnd} onExit={() => setView("lobby")} />
+    ), [view, handleGameEnd]);
 
-    const gameContent = useMemo(
-        () =>
-            view === "game" && (
-                <div className="flex flex-col items-center gap-6 w-full max-w-md text-center">
-                    <h1 className="text-3xl font-bold h-10">{message}</h1>
-                    <p className="text-xl">Level: {level}</p>
-                    <ColorPads
-                        onPadClick={handlePadClick}
-                        litPad={litPad}
-                        playerTurn={isPlayerTurn}
-                    />
-                </div>
-            ),
-        [view, message, level, handlePadClick, litPad, isPlayerTurn]
-    );
+    const leaderboardContent = useMemo(() => view === "board" && (
+        <Leaderboard key={leaderboardKey} API_BASE={API_BASE} finalScore={finalScore} onReplay={startGame} onHome={() => setView("lobby")} userData={userData} eventId={currentGameEventId} />
+    ), [view, leaderboardKey, finalScore, startGame, userData, currentGameEventId]);
 
-    const leaderboardContent = useMemo(
-        () =>
-            view === "board" && (
-                <Leaderboard
-                    key={leaderboardKey}
-                    API_BASE={API_BASE}
-                    finalScore={finalScore}
-                    onReplay={startGame}
-                    onHome={() => setView("lobby")}
-                    userData={userData}
-                    eventId={currentGameEventId}
-                />
-            ),
-        [
-            view,
-            leaderboardKey,
-            finalScore,
-            startGame,
-            userData,
-            currentGameEventId,
-        ]
-    );
-
+    // --- JSX نهایی برنامه ---
     return (
         <div className="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 text-white p-4 font-[Vazirmatn]">
             {error && (
@@ -339,7 +193,7 @@ function App() {
             )}
             <AnimatePresence mode="wait">
                 <motion.div
-                    key={view} // کلید انیمیشن، نام view فعلی است
+                    key={view}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
@@ -352,12 +206,7 @@ function App() {
                     {view === "board" && leaderboardContent}
                 </motion.div>
             </AnimatePresence>
-
-            <img
-                src={`${process.env.PUBLIC_URL}/teamlogo.png`}
-                alt="Team Logo"
-                className="absolute bottom-4 right-4 w-24 opacity-70 pointer-events-none"
-            />
+            <img src={`${process.env.PUBLIC_URL}/teamlogo.png`} alt="Team Logo" className="absolute bottom-4 right-4 w-24 opacity-70 pointer-events-none" />
         </div>
     );
 }
