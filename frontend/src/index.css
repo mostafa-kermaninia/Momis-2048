@@ -2,101 +2,133 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-        sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    background-color: #111827;
-    overflow-x: hidden;
+:root {
+  /* متغیرهای CSS برای کنترل آسان اندازه و فاصله */
+  --grid-size: 400px; /* اندازه کلی بورد */
+  --grid-count: 4;
+  --cell-gap: 15px;
+  --cell-size: calc((var(--grid-size) - (var(--cell-gap) * (var(--grid-count) + 1))) / var(--grid-count));
 }
 
-/* --- Wrapper اصلی --- */
+body {
+    margin: 0;
+    font-family: "Clear Sans", "Helvetica Neue", Arial, sans-serif;
+    background-color: #faf8ef;
+}
+
+/* --- چیدمان اصلی --- */
 .game-wrapper {
   width: 100%;
-  max-width: 500px;
+  max-width: var(--grid-size);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  outline: none;
+  outline: none; /* برای دریافت رویداد کیبورد */
 }
 
 .game-container {
   width: 100%;
-  padding: 15px;
-  background-color: #faf8ef;
-  border-radius: 6px;
-  color: #776e65;
-  -webkit-touch-callout: none; -webkit-user-select: none;
-  -moz-user-select: none; user-select: none;
 }
 
 /* --- هدر و امتیازات --- */
-.game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.title { font-size: 60px; font-weight: bold; margin: 0; }
-.scores-container { display: flex; gap: 8px; }
-.score-box { background-color: #bbada0; color: #eee4da; padding: 8px 20px; border-radius: 3px; font-size: 14px; font-weight: bold; display: flex; flex-direction: column; align-items: center; min-width: 80px; }
-.score-box span { color: white; font-size: 24px; }
-
-/* --- 🔥 FIX: هدر بهبود یافته --- */
-.game-intro { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.game-intro-text { margin: 0; font-size: 16px; flex-grow: 1; }
-.restart-button { background-color: #8f7a66; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: background-color 0.2s; }
-.restart-button:hover { background-color: #7a6858; }
-
-/* --- 🔥 FIX: موقعیت‌یابی دقیق کاشی‌ها با CSS Grid --- */
-.board-container { position: relative; background-color: #bbada0; border-radius: 6px; }
-.grid-background, .tile-container {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(4, 1fr);
-  gap: 15px;
-  padding: 15px;
+.game-header, .game-intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 0 5px;
 }
-.grid-background { position: relative; z-index: 1; }
-.tile-container { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 2; }
-.grid-cell { background-color: rgba(238, 228, 218, 0.35); border-radius: 3px; }
+.title { font-size: 60px; font-weight: bold; margin: 0; color: #776e65; }
+.scores-container { display: flex; gap: 8px; }
+.score-box { background-color: #bbada0; color: #eee4da; padding: 8px 20px; border-radius: 3px; font-size: 13px; font-weight: bold; text-align: center; }
+.score-box span { color: white; font-size: 25px; display: block; }
+.game-intro-text { margin: 0; font-size: 16px; color: #776e65; }
+.restart-button, .exit-button {
+  background-color: #8f7a66; color: white; border: none; padding: 10px 20px;
+  border-radius: 5px; font-weight: bold; cursor: pointer; transition: background-color 0.2s;
+}
+.restart-button:hover, .exit-button:hover { background-color: #7a6858; }
 
-.tile-wrapper {
-  grid-row-start: var(--row);
-  grid-column-start: var(--col);
+/* --- 🔥 FIX: بورد بازی با چیدمان دقیق --- */
+.board-container {
+  position: relative;
+  background-color: #bbada0;
+  border-radius: 6px;
+  width: var(--grid-size);
+  height: var(--grid-size);
+  box-sizing: border-box;
+}
+
+.grid-background {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-count), var(--cell-size));
+  grid-template-rows: repeat(var(--grid-count), var(--cell-size));
+  gap: var(--cell-gap);
+  padding: var(--cell-gap);
+}
+
+.grid-cell {
+  background-color: rgba(238, 228, 218, 0.35);
+  border-radius: 3px;
+}
+
+.tile-container {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  transition: all 0.15s ease-in-out;
 }
-.tile { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; font-weight: bold; border-radius: 3px; background-color: #eee4da; color: #776e65; }
-.tile-inner { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
 
-/* --- انیمیشن‌ها و رنگ‌ها --- */
-@keyframes appear { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-.tile.tile-new .tile-inner { animation: appear 0.2s ease-out; }
-@keyframes merge { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-.tile.tile-merged .tile-inner { animation: merge 0.2s ease; }
-.tile-4 { background-color: #ede0c8; }
-.tile-8, .tile-16, .tile-32, .tile-64, .tile-128, .tile-256, .tile-512, .tile-1024, .tile-2048, .tile-supernova { color: #f9f6f2; }
-.tile-8 { background-color: #f2b179; } .tile-16 { background-color: #f59563; } .tile-32 { background-color: #f67c5f; } .tile-64 { background-color: #f65e3b; }
-.tile-128 { background-color: #edcf72; } .tile-256 { background-color: #edcc61; } .tile-512 { background-color: #edc850; }
-.tile-1024 { background-color: #edc53f; font-size: 25px; } .tile-2048 { background-color: #edc22e; font-size: 25px; } .tile-supernova { background-color: #3c3a32; font-size: 25px; }
+.tile-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--cell-size);
+  height: var(--cell-size);
+  padding: var(--cell-gap);
+  box-sizing: content-box; /* بسیار مهم برای محاسبات صحیح */
+  transition: transform 100ms ease-in-out;
+}
 
-/* --- صفحه Game Over --- */
-.game-over-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(238, 228, 218, 0.73); display: flex; justify-content: center; align-items: center; z-index: 100; border-radius: 6px; }
-.game-over-box { background-color: #faf8ef; padding: 30px 50px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.2); text-align: center; }
-.game-over-box h2 { font-size: 50px; color: #776e65; margin: 0 0 20px; }
-
-/* --- دکمه خروج --- */
-.exit-button {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  padding: 10px 25px;
-  border-radius: 5px;
+.tile {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
   font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  background-color: #cdc1b4;
+  color: #776e65;
+  font-size: 45px;
 }
-.exit-button:hover {
-  background-color: #5a6268;
+
+/* --- انیمیشن ها --- */
+@keyframes appear { from { transform: scale(0); } to { transform: scale(1); } }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+.tile-new > .tile { animation: appear 200ms ease-in-out; }
+.tile-merged > .tile { animation: pulse 200ms ease-in-out; }
+
+/* --- رنگ بندی کاشی ها --- */
+.tile.text-small { font-size: 35px; }
+.tile.text-medium { font-size: 45px; }
+.tile.text-large { font-size: 55px; }
+.tile.tile-8, .tile.tile-16, .tile.tile-32, .tile.tile-64, .tile.tile-128, .tile.tile-256, .tile.tile-512, .tile.tile-1024, .tile.tile-2048 { color: #f9f6f2; }
+.tile-2 { background: #eee4da; } .tile-4 { background: #ede0c8; } .tile-8 { background: #f2b179; }
+.tile-16 { background: #f59563; } .tile-32 { background: #f67c5f; } .tile-64 { background: #f65e3b; }
+.tile-128 { background: #edcf72; } .tile-256 { background: #edcc61; } .tile-512 { background: #edc850; }
+.tile-1024 { background: #edc53f; } .tile-2048 { background: #edc22e; }
+
+/* --- ریسپانسیو برای موبایل --- */
+@media (max-width: 420px) {
+  :root {
+    --grid-size: 90vw;
+  }
+  .title { font-size: 40px; }
+  .score-box { padding: 5px 10px; min-width: 60px; }
+  .score-box span { font-size: 18px; }
+  .tile { font-size: 30px !important; }
 }
