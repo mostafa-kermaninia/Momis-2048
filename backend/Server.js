@@ -18,7 +18,7 @@ const allowedOrigins = [
     "https://momis.studio",
     "https://www.momis.studio",
     "https://web.telegram.org",
-    "https://memory.momis.studio", // <-- این خط اضافه شود
+    "https://momis2048.momis.studio", // <-- این خط اضافه شود
 ];
 const corsOptions = {
     origin: (origin, callback) => {

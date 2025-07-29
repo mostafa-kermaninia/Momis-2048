@@ -52,7 +52,7 @@ The tournament has now officially ended. Keep practicing for the next event!`;
                 [
                     {
                         text: "🚀 Practice in Free Mode!",
-                        web_app: { url: "https://memory.momis.studio" }, // <--- تغییر: آدرس به بازی جدید آپدیت شد
+                        web_app: { url: "https://momis2048.momis.studio/" }, // <--- تغییر: آدرس به بازی جدید آپدیت شد
                     },
                 ],
             ],
@@ -79,7 +79,7 @@ function startListening() {
                     [
                         {
                             text: "🚀 Play Game!",
-                            web_app: { url: "https://memory.momis.studio" }, // <--- تغییر: آدرس به بازی جدید آپدیت شد
+                            web_app: { url: "https://momis2048.momis.studio/" }, // <--- تغییر: آدرس به بازی جدید آپدیت شد
                         },
                     ],
                 ],
