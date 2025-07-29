@@ -1,9 +1,7 @@
-/* 1. دستورات ضروری برای فعال‌سازی Tailwind CSS */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 2. استایل‌های پایه برای کل صفحه برای رفع مشکلات ظاهری و اسکرول */
 body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -11,191 +9,94 @@ body {
         sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #111827; /* رنگ پس‌زمینه پایه مشابه گرادینت شما */
-    overflow-x: hidden; /* <-- این خط مشکل حرکت پس‌زمینه به چپ و راست را حل می‌کند */
+    background-color: #111827;
+    overflow-x: hidden;
 }
 
-/* فونت وزیرمتن که در App.js استفاده کردید */
-@font-face {
-    font-family: 'Vazirmatn';
-    /* آدرس فایل فونت خود را در اینجا قرار دهید اگر به صورت لوکال دارید */
-}
-
-/* 3. تمام استایل‌های سفارشی بازی 2048 */
-
-/* Wrapper اصلی برای گرفتن فوکس و کنترل‌های لمسی */
+/* --- Wrapper اصلی --- */
 .game-wrapper {
   width: 100%;
+  max-width: 500px;
   display: flex;
-  justify-content: center;
-  outline: none; /* برای حذف حاشیه فوکس */
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  outline: none;
 }
 
 .game-container {
   width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
   padding: 15px;
   background-color: #faf8ef;
   border-radius: 6px;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  user-select: none;
-}
-
-.game-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.title {
-  font-size: 60px;
-  font-weight: bold;
   color: #776e65;
-  margin: 0;
+  -webkit-touch-callout: none; -webkit-user-select: none;
+  -moz-user-select: none; user-select: none;
 }
 
-.scores-container {
-  display: flex;
-  gap: 8px;
-}
+/* --- هدر و امتیازات --- */
+.game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.title { font-size: 60px; font-weight: bold; margin: 0; }
+.scores-container { display: flex; gap: 8px; }
+.score-box { background-color: #bbada0; color: #eee4da; padding: 8px 20px; border-radius: 3px; font-size: 14px; font-weight: bold; display: flex; flex-direction: column; align-items: center; min-width: 80px; }
+.score-box span { color: white; font-size: 24px; }
 
-.score-box {
-  background-color: #bbada0;
-  color: #eee4da;
-  padding: 8px 20px;
-  border-radius: 3px;
-  font-size: 14px;
-  font-weight: bold;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 80px;
-}
+/* --- 🔥 FIX: هدر بهبود یافته --- */
+.game-intro { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.game-intro-text { margin: 0; font-size: 16px; flex-grow: 1; }
+.restart-button { background-color: #8f7a66; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: background-color 0.2s; }
+.restart-button:hover { background-color: #7a6858; }
 
-.score-box span {
-  color: white;
-  font-size: 24px;
+/* --- 🔥 FIX: موقعیت‌یابی دقیق کاشی‌ها با CSS Grid --- */
+.board-container { position: relative; background-color: #bbada0; border-radius: 6px; }
+.grid-background, .tile-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 15px;
+  padding: 15px;
 }
-
-.game-intro {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: #776e65;
-  margin-bottom: 20px;
-}
-
-.restart-button {
-  background-color: #8f7a66;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 3px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.board-container {
-    position: relative;
-    background-color: #bbada0;
-    border-radius: 6px;
-    width: 100%;
-    padding-bottom: 100%; 
-    height: 0;
-}
-
-.grid-container, .tile-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    padding: 15px;
-    box-sizing: border-box;
-}
-
-.grid-container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(4, 1fr);
-    gap: 15px;
-    z-index: 1;
-}
-
-.grid-cell {
-    background-color: rgba(238, 228, 218, 0.35);
-    border-radius: 3px;
-}
+.grid-background { position: relative; z-index: 1; }
+.tile-container { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 2; }
+.grid-cell { background-color: rgba(238, 228, 218, 0.35); border-radius: 3px; }
 
 .tile-wrapper {
-    position: absolute;
-    width: calc(25% - 11.25px);
-    height: calc(25% - 11.25px);
-    transition: transform 0.1s ease-in-out;
-    z-index: 2;
+  grid-row-start: var(--row);
+  grid-column-start: var(--col);
+  width: 100%;
+  height: 100%;
+  transition: all 0.15s ease-in-out;
 }
+.tile { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; font-weight: bold; border-radius: 3px; background-color: #eee4da; color: #776e65; }
+.tile-inner { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
 
-.tile {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: bold;
-    border-radius: 3px;
-    color: #776e65;
-    background-color: #eee4da;
-}
-
-.tile .text-large { font-size: 45px; }
-.tile .text-medium { font-size: 35px; }
-.tile .text-small { font-size: 25px; }
-
-@keyframes appear { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-.tile.tile-new .tile-inner { animation: appear 0.2s ease; }
-
+/* --- انیمیشن‌ها و رنگ‌ها --- */
+@keyframes appear { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.tile.tile-new .tile-inner { animation: appear 0.2s ease-out; }
 @keyframes merge { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
 .tile.tile-merged .tile-inner { animation: merge 0.2s ease; }
-
 .tile-4 { background-color: #ede0c8; }
-.tile-8 { color: #f9f6f2; background-color: #f2b179; }
-.tile-16 { color: #f9f6f2; background-color: #f59563; }
-.tile-32 { color: #f9f6f2; background-color: #f67c5f; }
-.tile-64 { color: #f9f6f2; background-color: #f65e3b; }
-.tile-128 { color: #f9f6f2; background-color: #edcf72; }
-.tile-256 { color: #f9f6f2; background-color: #edcc61; }
-.tile-512 { color: #f9f6f2; background-color: #edc850; }
-.tile-1024 { color: #f9f6f2; background-color: #edc53f; font-size: 25px; }
-.tile-2048 { color: #f9f6f2; background-color: #edc22e; font-size: 25px; }
-.tile-supernova { color: #f9f6f2; background-color: #3c3a32; font-size: 25px; }
+.tile-8, .tile-16, .tile-32, .tile-64, .tile-128, .tile-256, .tile-512, .tile-1024, .tile-2048, .tile-supernova { color: #f9f6f2; }
+.tile-8 { background-color: #f2b179; } .tile-16 { background-color: #f59563; } .tile-32 { background-color: #f67c5f; } .tile-64 { background-color: #f65e3b; }
+.tile-128 { background-color: #edcf72; } .tile-256 { background-color: #edcc61; } .tile-512 { background-color: #edc850; }
+.tile-1024 { background-color: #edc53f; font-size: 25px; } .tile-2048 { background-color: #edc22e; font-size: 25px; } .tile-supernova { background-color: #3c3a32; font-size: 25px; }
 
-.game-over-overlay {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(238, 228, 218, 0.73);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    z-index: 100;
-    border-radius: 6px;
+/* --- صفحه Game Over --- */
+.game-over-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(238, 228, 218, 0.73); display: flex; justify-content: center; align-items: center; z-index: 100; border-radius: 6px; }
+.game-over-box { background-color: #faf8ef; padding: 30px 50px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.2); text-align: center; }
+.game-over-box h2 { font-size: 50px; color: #776e65; margin: 0 0 20px; }
+
+/* --- دکمه خروج --- */
+.exit-button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
-
-.game-over-box {
-    background-color: #faf8ef;
-    padding: 30px 50px;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.2);
-    text-align: center;
-}
-
-.game-over-box h2 {
-    font-size: 50px;
-    color: #776e65;
-    margin-top: 0;
-    margin-bottom: 20px;
+.exit-button:hover {
+  background-color: #5a6268;
 }
