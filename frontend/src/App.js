@@ -5,7 +5,7 @@ import ColorPads from "./components/ColorPads"; // کامپوننت جدید ب�
 import DefaultAvatar from "./assets/default-avatar.png";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API_BASE = "/api"; // یا آدرس بک‌اند شما
+const API_BASE = "https://momis2048.momis.studio/api"; // یا آدرس بک‌اند شما
 
 function App() {
     const [view, setView] = useState("auth"); // auth, lobby, game, board
