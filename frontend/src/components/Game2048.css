@@ -1,25 +1,23 @@
-/* فایل src/components/Game2048.css */
+/* src/components/Game2048.css */
 .game-container {
   position: relative;
   background: #bbada0;
   border-radius: 6px;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
   padding: 15px;
+  width: 500px;
+  height: 500px;
+  box-sizing: border-box;
 }
 
 .game-header {
     display: flex;
     justify-content: space-between;
     margin-bottom: 15px;
+    color: white;
 }
 
 .score-container, .best-container {
     background: #8f7a66;
-    color: white;
     padding: 8px 15px;
     border-radius: 3px;
     font-weight: bold;
@@ -28,8 +26,6 @@
 
 .grid-container {
   position: absolute;
-  top: 80px; /* Adjust based on header height */
-  left: 15px;
   z-index: 1;
 }
 
@@ -54,8 +50,6 @@
 
 .tile-container {
   position: absolute;
-  top: 80px; /* Adjust based on header height */
-  left: 15px;
   z-index: 2;
 }
 
@@ -80,13 +74,12 @@
   background: #eee4da;
 }
 
-/* ... Position classes ... */
+/* ... موقعیت کاشی‌ها ... */
 .tile-position-1-1 { transform: translate(0px, 0px); }
 .tile-position-1-2 { transform: translate(0px, 121.25px); }
 .tile-position-1-3 { transform: translate(0px, 242.5px); }
 .tile-position-1-4 { transform: translate(0px, 363.75px); }
 .tile-position-2-1 { transform: translate(121.25px, 0px); }
-/* ... Add all 16 position classes like this ... */
 .tile-position-2-2 { transform: translate(121.25px, 121.25px); }
 .tile-position-2-3 { transform: translate(121.25px, 242.5px); }
 .tile-position-2-4 { transform: translate(121.25px, 363.75px); }
@@ -99,7 +92,7 @@
 .tile-position-4-3 { transform: translate(363.75px, 242.5px); }
 .tile-position-4-4 { transform: translate(363.75px, 363.75px); }
 
-/* ... Tile value classes ... */
+/* ... استایل کاشی‌ها بر اساس عدد ... */
 .tile-2 .tile-inner { background: #eee4da; }
 .tile-4 .tile-inner { background: #ede0c8; }
 .tile-8 .tile-inner { color: #f9f6f2; background: #f2b179; }
@@ -112,7 +105,7 @@
 .tile-1024 .tile-inner { color: #f9f6f2; background: #edc53f; font-size: 35px; }
 .tile-2048 .tile-inner { color: #f9f6f2; background: #edc22e; font-size: 35px; }
 
-/* Animations */
+/* انیمیشن‌ها */
 @keyframes appear {
   from {
     opacity: 0;
