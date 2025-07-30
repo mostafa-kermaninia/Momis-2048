@@ -1,26 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import './Game2048.css'; // ما همچنان از CSS شما استفاده می‌کنیم
+import React, { useState, useEffect, useCallback } from 'react';
+import './Game2048.css';
 
-// این یک ابزار ساده برای مدیریت ذخیره‌سازی در مرورگر است
-// جایگزین local_storage_manager.js
 const localStorageManager = {
   getBestScore: () => parseInt(window.localStorage.getItem('bestScore') || '0', 10),
   setBestScore: (score) => window.localStorage.setItem('bestScore', score),
 };
 
-// ================================================================
-// منطق اصلی بازی (الهام گرفته از game_manager.js و grid.js)
-// ================================================================
-
-// تابع برای ساخت یک گرید خالی
+// توابع کمکی بازی
 const createEmptyGrid = () => Array.from({ length: 4 }, () => Array(4).fill(null));
 
-// تابع برای پیدا کردن یک موقعیت خالی تصادفی
 const getRandomAvailableCell = (grid) => {
   const availableCells = [];
-  for (let x = 0; x < 4; x++) {
-    for (let y = 0; y < 4; y++) {
-      if (!grid[x][y]) {
+  for (let y = 0; y < 4; y++) {
+    for (let x = 0; x < 4; x++) {
+      if (!grid[y][x]) {
         availableCells.push({ x, y });
       }
     }
@@ -31,18 +24,30 @@ const getRandomAvailableCell = (grid) => {
   return null;
 };
 
-// تابع برای اضافه کردن یک کاشی جدید (معمولاً 2 یا 4)
 const addRandomTile = (grid) => {
   const newGrid = grid.map(row => [...row]);
   const cell = getRandomAvailableCell(newGrid);
   if (cell) {
     const value = Math.random() < 0.9 ? 2 : 4;
-    newGrid[cell.x][cell.y] = { value, id: Date.now() + Math.random(), isNew: true };
+    newGrid[cell.y][cell.x] = { value, id: Date.now() + Math.random(), isNew: true };
   }
   return newGrid;
 };
 
-// توابع کمکی برای حرکت
+// بررسی اینکه آیا حرکتی ممکن است یا نه
+const movesAvailable = (grid) => {
+    for (let y = 0; y < 4; y++) {
+        for (let x = 0; x < 4; x++) {
+            const cell = grid[y][x];
+            if (!cell) return true; // خانه خالی وجود دارد
+            if (x < 3 && cell.value === grid[y][x + 1]?.value) return true; // امکان ادغام افقی
+            if (y < 3 && cell.value === grid[y + 1][x]?.value) return true; // امکان ادغام عمودی
+        }
+    }
+    return false;
+};
+
+// توابع حرکت
 const slide = (row) => {
   const arr = row.filter(val => val);
   const missing = 4 - arr.length;
@@ -56,91 +61,95 @@ const combine = (row) => {
     if (row[i] && row[i].value === row[i + 1]?.value) {
       scoreToAdd += row[i].value * 2;
       row[i] = { ...row[i], value: row[i].value * 2, isMerged: true };
-      row[i + 1] = null;
+      row[i+1] = null;
     }
   }
   return { newRow: row, score: scoreToAdd };
 };
 
-const rotateGrid = (grid) => {
+// ✨ تغییر در این تابع برای سادگی و خوانایی
+const transposeGrid = (grid) => {
     const newGrid = createEmptyGrid();
-    for (let x = 0; x < 4; x++) {
-        for (let y = 0; y < 4; y++) {
-            newGrid[x][y] = grid[3 - y][x];
+    for (let y = 0; y < 4; y++) {
+        for (let x = 0; x < 4; x++) {
+            newGrid[x][y] = grid[y][x];
         }
     }
     return newGrid;
 };
 
-const moveGrid = (grid, direction) => {
+const move = (grid, direction) => {
     let currentGrid = grid.map(row => row.map(cell => cell ? { ...cell, isNew: false, isMerged: false } : null));
     let score = 0;
     let moved = false;
     
-    // 0: up, 1: right, 2: down, 3: left
-    for(let i = 0; i < direction; i++) {
-        currentGrid = rotateGrid(currentGrid);
-    }
+    // 0: left, 1: up, 2: right, 3: down
+    const isHorizontal = direction === 0 || direction === 2;
+    const isReversed = direction === 2 || direction === 3;
 
+    if (!isHorizontal) currentGrid = transposeGrid(currentGrid);
+    
     for (let y = 0; y < 4; y++) {
         const originalRow = [...currentGrid[y]];
-        const slidRow = slide(currentGrid[y]);
+        let row = [...originalRow];
+        if (isReversed) row.reverse();
+
+        const slidRow = slide(row);
         const { newRow, score: newScore } = combine(slidRow);
-        currentGrid[y] = slide(newRow);
-        score += newScore;
+        let finalRow = slide(newRow);
         
-        // چک می‌کنیم آیا تغییری ایجاد شده
+        score += newScore;
+
+        if (isReversed) finalRow.reverse();
+        currentGrid[y] = finalRow;
+
         for(let x = 0; x < 4; x++) {
-            if (originalRow[x]?.value !== currentGrid[y][x]?.value) {
+            if (originalRow[x]?.value !== finalRow[x]?.value) {
                 moved = true;
             }
         }
     }
-
-    for(let i = 0; i < (4 - direction) % 4; i++) {
-        currentGrid = rotateGrid(currentGrid);
-    }
+    
+    if (!isHorizontal) currentGrid = transposeGrid(currentGrid);
     
     return { newGrid: currentGrid, score, moved };
 };
 
 
-// ================================================================
 // کامپوننت اصلی بازی
-// ================================================================
-const Game2048 = () => {
+const Game2048 = ({ onGameOver }) => { // ✨ دریافت onGameOver به عنوان prop
   const [grid, setGrid] = useState(createEmptyGrid());
   const [score, setScore] = useState(0);
   const [bestScore, setBestScore] = useState(localStorageManager.getBestScore());
   const [isGameOver, setGameOver] = useState(false);
 
-  const setupGame = () => {
+  const setupGame = useCallback(() => {
     let newGrid = addRandomTile(createEmptyGrid());
     newGrid = addRandomTile(newGrid);
     setGrid(newGrid);
     setScore(0);
     setGameOver(false);
-  };
-
-  // شروع بازی در اولین رندر
-  useEffect(() => {
-    setupGame();
   }, []);
 
-  const handleKeyDown = (e) => {
+  useEffect(() => {
+    setupGame();
+  }, [setupGame]);
+
+  const handleKeyDown = useCallback((e) => {
     if (isGameOver) return;
     
     let direction = -1;
+    // ✨ منطق کلیدها اصلاح شد
     switch (e.key) {
-      case 'ArrowUp': direction = 0; break;
-      case 'ArrowRight': direction = 1; break;
-      case 'ArrowDown': direction = 2; break;
-      case 'ArrowLeft': direction = 3; break;
+      case 'ArrowUp':    direction = 1; break;
+      case 'ArrowRight': direction = 2; break;
+      case 'ArrowDown':  direction = 3; break;
+      case 'ArrowLeft':  direction = 0; break;
       default: return;
     }
     e.preventDefault();
 
-    const { newGrid, score: newScore, moved } = moveGrid(grid, direction);
+    const { newGrid, score: newScore, moved } = move(grid, direction);
 
     if (moved) {
         const gridWithNewTile = addRandomTile(newGrid);
@@ -153,26 +162,29 @@ const Game2048 = () => {
             setBestScore(updatedScore);
             localStorageManager.setBestScore(updatedScore);
         }
+        
+        // ✨ چک کردن وضعیت پایان بازی
+        if (!movesAvailable(gridWithNewTile)) {
+            setGameOver(true);
+            // فراخوانی تابع از App.js
+            onGameOver(updatedScore); 
+        }
     }
-    // اینجا باید منطق پایان بازی را هم اضافه کنید
-  };
+  }, [grid, score, bestScore, isGameOver, onGameOver]);
   
-  // مدیریت ورودی کیبورد
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [grid, score, isGameOver]); // وابستگی‌ها برای استفاده از آخرین state
+  }, [handleKeyDown]);
 
-  // تبدیل گرید به یک آرایه مسطح از کاشی‌ها برای رندر کردن
   const tiles = grid.flatMap((row, y) => 
     row.map((cell, x) => (cell ? { ...cell, x, y } : null))
   ).filter(Boolean);
 
-
   return (
-    <div className="game-container">
+    <div className="game-wrapper">
       <div className="game-header">
         <h1 className="title">2048</h1>
         <div className="scores-container">
@@ -181,37 +193,33 @@ const Game2048 = () => {
         </div>
       </div>
       <div className="above-game">
-          <p className="game-intro">Join the numbers and get to the <strong>2048 tile!</strong></p>
+          <p className="game-intro">Join numbers, get to the <strong>2048 tile!</strong></p>
           <a className="restart-button" onClick={setupGame}>New Game</a>
       </div>
 
-      {/* نمایش پیام پایان بازی */}
-      {isGameOver && (
-          <div className="game-message">
-              <p>Game Over!</p>
-              <div className="lower">
-                  <a className="retry-button" onClick={setupGame}>Try again</a>
-              </div>
-          </div>
-      )}
-
-      {/* رندر کردن گرید و کاشی‌ها */}
-      <div className="grid-container">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="grid-row">
-            {[...Array(4)].map((_, j) => (
-              <div key={j} className="grid-cell" />
-            ))}
-          </div>
-        ))}
-      </div>
-
-      <div className="tile-container">
-        {tiles.map(tile => (
-            <div key={tile.id} className={`tile tile-${tile.value} tile-position-${tile.x + 1}-${tile.y + 1} ${tile.isNew ? 'tile-new' : ''} ${tile.isMerged ? 'tile-merged' : ''}`}>
-                <div className="tile-inner">{tile.value}</div>
+      <div className="game-container">
+        {isGameOver && (
+            <div className="game-message">
+                <p>Game Over!</p>
+                <div className="lower">
+                    {/* دکمه Try Again دیگر اینجا نیست، چون به صفحه لیدربورد منتقل می‌شود */}
+                </div>
             </div>
-        ))}
+        )}
+
+        <div className="grid-container">
+          {[...Array(16)].map((_, i) => (
+              <div key={i} className="grid-cell" />
+          ))}
+        </div>
+
+        <div className="tile-container">
+          {tiles.map(tile => (
+              <div key={tile.id} className={`tile tile-${tile.value} tile-position-${tile.x + 1}-${tile.y + 1} ${tile.isNew ? 'tile-new' : ''}`}>
+                  <div className="tile-inner">{tile.value}</div>
+              </div>
+          ))}
+        </div>
       </div>
     </div>
   );
