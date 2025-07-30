@@ -6,6 +6,7 @@ import DefaultAvatar from "./assets/default-avatar.png"; // مسیر را چک �
 import { motion, AnimatePresence } from "framer-motion";
 
 const API_BASE = "https://momis2048.momis.studio/api";
+const tg = window.Telegram?.WebApp;
 
 function App() {
     const [view, setView] = useState("auth");
@@ -61,18 +62,13 @@ function App() {
         [isAuthenticated, token]
     );
 
+
     const authenticateUser = useCallback(async () => {
         setAuthLoading(true);
         setError(null);
         try {
-            const initData = window.Telegram?.WebApp?.initData;
-            if (!initData) {
-                console.warn("Running in non-Telegram environment.");
-                setIsAuthenticated(true);
-                setView("lobby");
-                setAuthLoading(false);
-                return;
-            }
+            // ✨ دیگر مستقیماً چک نمی‌کنیم، چون این تابع فقط وقتی تلگرام آماده باشد صدا زده می‌شود
+            const initData = tg.initData;
 
             const response = await fetch(`${API_BASE}/telegram-auth`, {
                 method: "POST",
@@ -80,7 +76,6 @@ function App() {
                 body: JSON.stringify({ initData }),
             });
             const data = await response.json();
-
             if (!response.ok || !data.valid) {
                 throw new Error(data.message || "Authentication failed");
             }
@@ -100,6 +95,37 @@ function App() {
             setAuthLoading(false);
         }
     }, []);
+
+    // ✨ هوک جدید برای مدیریت آماده شدن تلگرام
+    useEffect(() => {
+        if (tg) {
+            tg.ready(); // به تلگرام اطلاع می‌دهیم که برنامه آماده است
+            tg.expand(); // برنامه را تمام صفحه می‌کنیم
+
+            // اگر داده‌های کاربر از قبل در localStorage وجود دارد، مستقیم به لابی برو
+            if (localStorage.getItem("jwtToken") && localStorage.getItem("userData")) {
+                setIsAuthenticated(true);
+                setView("lobby");
+                setAuthLoading(false);
+            } else if (tg.initData) {
+                // اگر داده‌ای برای احراز هویت وجود دارد، تابع را صدا بزن
+                authenticateUser();
+            } else {
+                // این حالت برای توسعه در مرورگر است
+                console.warn("Running in non-Telegram environment.");
+                setIsAuthenticated(true); // برای تست، فرض می‌کنیم احراز هویت شده
+                setView("lobby");
+                setAuthLoading(false);
+            }
+        } else {
+             // اگر آبجکت تلگرام کلا وجود نداشت (محیط تست)
+             console.warn("Running in non-Telegram environment (object not found).");
+             setIsAuthenticated(true);
+             setView("lobby");
+             setAuthLoading(false);
+        }
+    }, [authenticateUser]);
+
 
     const handleLogout = useCallback(() => {
         localStorage.removeItem("jwtToken");
