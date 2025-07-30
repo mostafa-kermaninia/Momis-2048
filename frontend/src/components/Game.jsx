@@ -4,22 +4,18 @@ import { GameManager } from '../gameLogic/game_manager';
 // این سه کلاس به عنوان ورودی به GameManager داده می‌شوند
 // و ارتباط بین منطق بازی و دنیای بیرون را برقرار می‌کنند
 
-// 1. مدیریت ورودی (کیبورد)
+// 1. مدیریت ورودی (کیبورد) - این کلاس فقط یک بار در برنامه تعریف می‌شود
 function KeyboardInputManager() {
   this.events = {};
   this.listen();
 }
 KeyboardInputManager.prototype.on = function (event, callback) {
-  if (!this.events[event]) {
-    this.events[event] = [];
-  }
+  if (!this.events[event]) this.events[event] = [];
   this.events[event].push(callback);
 };
 KeyboardInputManager.prototype.emit = function (event, data) {
   const callbacks = this.events[event];
-  if (callbacks) {
-    callbacks.forEach(callback => callback(data));
-  }
+  if (callbacks) callbacks.forEach(callback => callback(data));
 };
 KeyboardInputManager.prototype.listen = function () {
   const map = { 38: 0, 39: 1, 40: 2, 37: 3, 75: 0, 76: 1, 74: 2, 72: 3, 87: 0, 68: 1, 83: 2, 65: 3 };
@@ -30,13 +26,16 @@ KeyboardInputManager.prototype.listen = function () {
       event.preventDefault();
       this.emit("move", mapped);
     }
-    if (!modifiers && event.which === 82) { // R for restart
-        this.emit("restart");
-    }
+  });
+  // برای راحتی، می‌توانید دکمه ری‌استارت را هم به کیبورد اضافه کنید (مثلا 'R')
+  document.addEventListener("keydown", event => {
+      if (!modifiers && event.which === 82) {
+          this.emit("restart");
+      }
   });
 };
 
-// 2. مدیریت ذخیره‌سازی (در localStorage)
+// 2. مدیریت ذخیره‌سازی (localStorage) - این کلاس هم فقط یک بار تعریف می‌شود
 function LocalStorageManager() {
   this.bestScoreKey = "bestScore";
   this.gameStateKey = "gameState";
@@ -52,37 +51,39 @@ LocalStorageManager.prototype.setGameState = function (gameState) { this.storage
 LocalStorageManager.prototype.clearGameState = function () { this.storage.removeItem(this.gameStateKey); };
 
 
-const Game = ({ onGameOver }) => {
+const Game = ({ onGameOver, onExit }) => {
   const [gameState, setGameState] = useState(null);
 
-  // 3. مدیریت نمایش (Actuator)
-  // این کلاس مسئول است که به کامپوننت React بگوید چه زمانی باید رندر مجدد شود
-  const actuator = useMemo(() => ({
-    actuate: (grid, metadata) => {
-      // وقتی منطق بازی این تابع را صدا می‌زند، ما state کامپوننت را آپدیت می‌کنیم
-      // و این باعث رندر مجدد و نمایش تغییرات می‌شود
-      setGameState({ grid, metadata });
+  // 🔥 FIX: تعریف Actuator به عنوان یک Constructor که به state دسترسی دارد
+  // این کار خطای 'n is not a constructor' را به طور کامل حل می‌کند
+  const Actuator = useMemo(() => {
+    return function Actuator() {
+      this.actuate = (grid, metadata) => {
+        setGameState({ grid, metadata });
 
-      if(metadata.over && typeof onGameOver === 'function') {
-        onGameOver(metadata.score);
-      }
-    },
-    continueGame: () => {} // در این ساختار، این تابع کاری انجام نمی‌دهد
-  }), [onGameOver]);
-  
-  // ساخت یک نمونه از GameManager فقط یک بار
+        if (metadata.over && typeof onGameOver === 'function') {
+          onGameOver(metadata.score);
+        }
+      };
+      this.continueGame = () => {};
+    };
+  }, [onGameOver]);
+
+  // ساخت یک نمونه از GameManager فقط یک بار در طول عمر کامپوننت
   const gameManager = useMemo(() => {
-    return new GameManager(4, KeyboardInputManager, actuator, LocalStorageManager);
-  }, [actuator]);
+    return new GameManager(4, KeyboardInputManager, Actuator, LocalStorageManager);
+  }, [Actuator]);
 
   useEffect(() => {
-    // برای اطمینان از اینکه event listener کیبورد فقط یک بار ثبت می‌شود
-    // ما آن را درون GameManager مدیریت می‌کنیم
-  }, [gameManager]);
+    // این اطمینان می‌دهد که بازی با اولین رندر شروع می‌شود
+    if (!gameState) {
+      gameManager.setup();
+    }
+  }, [gameManager, gameState]);
 
 
   if (!gameState) {
-    return <div>Loading...</div>;
+    return <div className="text-white">Loading Game...</div>;
   }
   
   const { grid, metadata } = gameState;
@@ -99,26 +100,18 @@ const Game = ({ onGameOver }) => {
 
       <div className="above-game">
         <p className="game-intro">Join the numbers and get to the <strong>2048 tile!</strong></p>
-        <a className="restart-button" onClick={() => gameManager.restart()}>New Game</a>
+        <button className="restart-button" onClick={() => gameManager.restart()}>New Game</button>
       </div>
 
       <div className="game-container">
-        {metadata.over && (
+        {metadata.terminated && (
           <div className="game-message game-over">
-            <p>Game Over!</p>
+            <p>{metadata.won ? "You win!" : "Game Over!"}</p>
             <div className="lower">
-              <a className="retry-button" onClick={() => gameManager.restart()}>Try again</a>
+              <button className="retry-button" onClick={() => gameManager.restart()}>Try again</button>
+              {metadata.won && <button className="keep-playing-button" onClick={() => gameManager.keepPlaying()}>Keep going</button>}
             </div>
           </div>
-        )}
-        {metadata.won && !metadata.over && (
-            <div className="game-message game-won">
-                <p>You win!</p>
-                <div className="lower">
-                    <a className="keep-playing-button" onClick={() => gameManager.keepPlaying()}>Keep going</a>
-                    <a className="retry-button" onClick={() => gameManager.restart()}>Try again</a>
-                </div>
-            </div>
         )}
 
         <div className="grid-container">
@@ -132,11 +125,9 @@ const Game = ({ onGameOver }) => {
         <div className="tile-container">
           {grid.cells.flat().filter(tile => tile).map(tile => {
             const classList = ["tile", `tile-${tile.value}`, `tile-position-${tile.x + 1}-${tile.y + 1}`];
-            if (tile.mergedFrom) {
-                classList.push("tile-merged");
-            }
+            if (tile.mergedFrom) classList.push("tile-merged");
             if (tile.previousPosition) {
-                 // این باعث انیمیشن حرکت می‌شود (در CSS تعریف شده)
+                // انیمیشن حرکت توسط کلاس position مدیریت می‌شود
             } else {
                 classList.push("tile-new");
             }
@@ -149,6 +140,7 @@ const Game = ({ onGameOver }) => {
           })}
         </div>
       </div>
+      {onExit && <button onClick={onExit} className="exit-button">Back to Lobby</button>}
     </div>
   );
 };
