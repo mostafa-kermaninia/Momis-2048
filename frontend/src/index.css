@@ -1,4 +1,6 @@
-/* 1. دستورات ضروری Tailwind CSS برای لابی و صفحات اصلی شما */
+/* File: frontend/src/index.css */
+
+/* 1. دستورات ضروری Tailwind CSS برای لابی و سایر صفحات شما */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,124 +8,16 @@
 /* 2. استایل‌های پایه برای کل صفحه */
 body {
     margin: 0;
-    font-family: "Clear Sans", "Helvetica Neue", Arial, sans-serif;
-    background-color: #faf8ef; /* رنگ پس‌زمینه اصلی بازی */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* رنگ پس‌زمینه لابی و صفحات اصلی شما توسط Tailwind در App.js کنترل می‌شود */
     overflow-x: hidden;
 }
 
-/* 3. 🔥 کدهای CSS جدید و واکنش‌گرا برای بازی 2048 */
-
-/* متغیرهای CSS برای کنترل آسان اندازه و فاصله */
-:root {
-  --grid-size: 90vmin; /* اندازه بورد بر اساس کوچکترین بعد صفحه نمایش */
-  --grid-count: 4;
-  --cell-gap: 2vmin;
-  --cell-size: calc((var(--grid-size) - var(--cell-gap) * (var(--grid-count) + 1))) / var(--grid-count);
+@font-face {
+    font-family: 'Vazirmatn';
+    /* آدرس فونت خود را در اینجا قرار دهید */
 }
-
-/* Wrapper اصلی بازی */
-.game-wrapper-2048 {
-  width: var(--grid-size);
-  margin: 20px auto;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  outline: none;
-}
-
-/* هدر و امتیازات */
-.game-header, .game-intro {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.title { font-size: 12vmin; font-weight: bold; margin: 0; color: #776e65; }
-.scores-container { display: flex; gap: 1vmin; }
-.score-container, .best-container {
-  background-color: #bbada0;
-  color: #eee4da;
-  padding: 1.5vmin 3vmin;
-  border-radius: 3px;
-  font-size: 2vmin;
-  font-weight: bold;
-  text-align: center;
-}
-.score-container::before { content: "SCORE"; display: block; font-size: 1.8vmin; color: #eee4da;}
-.best-container::before { content: "BEST"; display: block; font-size: 1.8vmin; color: #eee4da;}
-.game-intro p { margin: 0; color: #776e65; font-size: 2.5vmin; }
-.restart-button, .exit-button, .retry-button {
-  background-color: #8f7a66; color: white; border: none; padding: 1.5vmin 3vmin;
-  border-radius: 5px; font-weight: bold; cursor: pointer; transition: background-color 0.2s;
-  font-size: 2.5vmin;
-}
-.exit-button { background-color: #6c757d; align-self: center; }
-
-/* بورد بازی */
-.board-container-2048 {
-  position: relative;
-  background-color: #bbada0;
-  border-radius: 6px;
-  width: var(--grid-size);
-  height: var(--grid-size);
-}
-.grid-background-2048 {
-  display: grid;
-  grid-template-columns: repeat(var(--grid-count), var(--cell-size));
-  grid-template-rows: repeat(var(--grid-count), var(--cell-size));
-  gap: var(--cell-gap);
-  padding: var(--cell-gap);
-}
-.grid-cell-2048 {
-  background-color: rgba(238, 228, 218, 0.35);
-  border-radius: 3px;
-}
-.tile-container-2048 {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-/* کاشی‌ها */
-.tile-wrapper-2048 {
-  position: absolute;
-  width: var(--cell-size);
-  height: var(--cell-size);
-  top: var(--cell-gap); /* آفست اولیه برابر با فاصله از لبه */
-  left: var(--cell-gap);
-  transition: transform 100ms ease-in-out;
-}
-.tile {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 3px;
-  font-weight: bold;
-  font-size: 7vmin;
-}
-
-/* انیمیشن‌ها */
-@keyframes appear { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-.tile.tile-new { animation: appear 200ms ease-out; }
-@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-.tile.tile-merged { animation: pulse 200ms ease; }
-
-/* رنگ‌بندی و اندازه فونت کاشی‌ها */
-.tile { background-color: #cdc1b4; color: #776e65; }
-.tile.tile-2 { background: #eee4da; }
-.tile.tile-4 { background: #ede0c8; }
-.tile.tile-8 { color: #f9f6f2; background: #f2b179; }
-.tile.tile-16 { color: #f9f6f2; background: #f59563; }
-.tile.tile-32 { color: #f9f6f2; background: #f67c5f; }
-.tile.tile-64 { color: #f9f6f2; background: #f65e3b; }
-.tile.tile-128 { color: #f9f6f2; background: #edcf72; }
-.tile.tile-256 { color: #f9f6f2; background: #edcc61; }
-.tile.tile-512 { color: #f9f6f2; background: #edc850; }
-.tile.tile-1024 { color: #f9f6f2; background: #edc53f; }
-.tile.tile-2048 { color: #f9f6f2; background: #edc22e; }
-
-/* تنظیم اندازه فونت برای اعداد بزرگتر */
-.tile.text-small { font-size: 4vmin; }
-.tile.text-medium { font-size: 5vmin; }
-.tile.text-large { font-size: 7vmin; }

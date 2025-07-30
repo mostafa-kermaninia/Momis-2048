@@ -1,0 +1,127 @@
+/* File: frontend/src/components/Game.css */
+
+/* متغیرهای CSS برای کنترل آسان اندازه و فاصله */
+:root {
+  --game-size: clamp(320px, 90vmin, 500px); /* اندازه بورد بین 320 تا 500 پیکسل خواهد بود */
+  --grid-count: 4;
+  --cell-gap: 2vmin;
+  --cell-size: calc((100% - (var(--cell-gap) * 5)) / var(--grid-count));
+}
+
+/* کانتینر اصلی بازی که استایل‌ها را کپسوله می‌کند */
+.game-root-2048 {
+  width: var(--game-size);
+  margin: 0 auto;
+  font-family: "Clear Sans", "Helvetica Neue", Arial, sans-serif;
+  color: #776e65;
+}
+
+/* هدر و امتیازات */
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.game-header .title { font-size: 12vmin; font-weight: bold; margin: 0; }
+.scores-container { display: flex; gap: 1.5vmin; }
+.score-box {
+  background-color: #bbada0;
+  color: #eee4da;
+  padding: 1vmin 3vmin;
+  border-radius: 3px;
+  font-size: 2.2vmin;
+  font-weight: bold;
+  text-align: center;
+}
+.score-box span { color: white; font-size: 4vmin; display: block; }
+
+/* متن راهنما و دکمه بازی جدید */
+.game-intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.game-intro-text { margin: 0; font-size: 2.5vmin; }
+.restart-button {
+  background-color: #8f7a66; color: white; border: none; padding: 1.5vmin 3vmin;
+  border-radius: 5px; font-weight: bold; cursor: pointer; transition: background-color 0.2s;
+  font-size: 2.5vmin; white-space: nowrap;
+}
+.restart-button:hover { background-color: #7a6858; }
+
+/* بورد بازی - کلید حل مشکل چیدمان */
+.board-container-2048 {
+  position: relative;
+  background-color: #bbada0;
+  border-radius: 6px;
+  width: 100%;
+  height: 0;
+  padding-bottom: 100%; /* حفظ نسبت 1:1 برای مربع بودن */
+}
+
+.grid-background-2048 {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  padding: var(--cell-gap);
+  display: grid;
+  grid-template-columns: repeat(var(--grid-count), 1fr);
+  grid-template-rows: repeat(var(--grid-count), 1fr);
+  gap: var(--cell-gap);
+}
+.grid-cell-2048 {
+  background-color: rgba(238, 228, 218, 0.35);
+  border-radius: 3px;
+}
+
+.tile-container-2048 {
+  position: absolute;
+  top: var(--cell-gap);
+  left: var(--cell-gap);
+  right: var(--cell-gap);
+  bottom: var(--cell-gap);
+}
+
+.tile-wrapper-2048 {
+  position: absolute;
+  width: var(--cell-size);
+  height: var(--cell-size);
+  transition: transform 100ms ease-in-out;
+}
+
+/* کاشی‌ها */
+.tile {
+  width: 100%; height: 100%; display: flex;
+  justify-content: center; align-items: center;
+  border-radius: 3px; font-weight: bold;
+  font-size: clamp(24px, 7vmin, 55px);
+  background-color: #cdc1b4; color: #776e65;
+}
+
+/* انیمیشن‌ها */
+@keyframes appear { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.tile.tile-new { animation: appear 200ms ease-out; }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+.tile.tile-merged { animation: pulse 200ms ease; }
+
+/* رنگ‌ها و اندازه فونت */
+.tile.tile-4 { background: #ede0c8; }
+.tile.tile-8, .tile.tile-16, .tile.tile-32, .tile.tile-64, .tile.tile-128, .tile.tile-256, .tile.tile-512, .tile.tile-1024, .tile.tile-2048 { color: #f9f6f2; }
+.tile.tile-8 { background: #f2b179; } .tile.tile-16 { background: #f59563; }
+.tile.tile-32 { background: #f67c5f; } .tile.tile-64 { background: #f65e3b; }
+.tile.tile-128 { background: #edcf72; } .tile.tile-256 { background: #edcc61; }
+.tile.tile-512 { background: #edc850; } .tile.tile-1024 { background: #edc53f; }
+.tile.tile-2048 { background: #edc22e; }
+.tile.text-small { font-size: clamp(20px, 5.5vmin, 45px); }
+.tile.text-medium { font-size: clamp(22px, 6vmin, 50px); }
+
+/* دکمه خروج */
+.exit-button {
+  margin-top: 20px;
+  background-color: #6c757d;
+  color: white; border: none; padding: 1.5vmin 3vmin;
+  border-radius: 5px; font-weight: bold; cursor: pointer;
+  font-size: 2.5vmin; transition: background-color 0.2s;
+}
+.exit-button:hover { background-color: #5a6268; }
