@@ -66,14 +66,10 @@ function App() {
         },
         [token, currentGameEventId]
     );
-
+    
     const startGame = useCallback(
         (eventId) => {
-            console.log(
-                `%c[startGame] STARTING NEW GAME. State BEFORE reset: level=${level}, sequence length=${sequence.length}`,
-                "color: #00FF7F; font-weight: bold;"
-            );
-
+            console.log(`[App.js] Starting Game for event: ${eventId}`);
             setCurrentGameEventId(eventId);
 
             if (!isAuthenticated || !token) {
@@ -82,25 +78,12 @@ function App() {
                 return;
             }
 
-            setSequence([]);
-            setPlayerSequence([]);
-            setLevel(0);
             setFinalScore(null);
-
             setView("game");
-            setMessage("Ready?");
-
-            setTimeout(() => {
-                console.log(
-                    `%c[startGame -> setTimeout] Calling nextLevel(). State SHOULD BE reset now.`,
-                    "color: #1E90FF;"
-                );
-
-                nextLevel();
-            }, 1500);
         },
-        [nextLevel, isAuthenticated, token, level, sequence.length]
+        [isAuthenticated, token]
     );
+
     const authenticateUser = useCallback(async () => {
         setAuthLoading(true);
         setError(null);
