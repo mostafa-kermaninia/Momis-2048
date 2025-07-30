@@ -1,6 +1,10 @@
-/* ثابت‌های CSS برای مدیریت آسان‌تر اندازه‌ها */
+/*
+  ✨ متغیر اصلی اندازه بورد، واکنش‌گرا شده است.
+  عرض بورد برابر با 90 درصد عرض صفحه (90vw) خواهد بود،
+  اما حداکثر از 420 پیکسل بزرگتر نمی‌شود.
+*/
 :root {
-  --grid-size: 400px;
+  --grid-size: min(90vw, 420px);
   --grid-gap: 12px;
   --cell-size: calc((var(--grid-size) - 5 * var(--grid-gap)) / 4);
 }
@@ -11,6 +15,8 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  /* اضافه کردن این خط به وسط‌چین شدن کل کامپوننت کمک می‌کند */
+  margin: 0 auto;
 }
 
 .game-header, .above-game {
@@ -21,7 +27,7 @@
 }
 
 .title {
-  font-size: 3rem;
+  font-size: clamp(2.5rem, 10vw, 3rem); /* اندازه فونت واکنش‌گرا */
   font-weight: bold;
   color: #F9F6F2;
 }
@@ -37,17 +43,17 @@
   border-radius: 4px;
   color: #f9f6f2;
   font-weight: bold;
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 4vw, 1.2rem); /* اندازه فونت واکنش‌گرا */
   min-width: 50px;
   text-align: center;
 }
 
 .game-intro {
   color: #eee4da;
+  font-size: clamp(0.9rem, 3vw, 1rem);
 }
 
-/* استایل دکمه‌ها شبیه به بقیه برنامه */
-.restart-button, .retry-button {
+.restart-button {
   background: #8f7a66;
   color: #f9f6f2;
   padding: 8px 16px;
@@ -56,17 +62,18 @@
   cursor: pointer;
   text-decoration: none;
   transition: background-color 0.2s;
+  font-size: clamp(0.9rem, 3vw, 1rem);
 }
 
-.restart-button:hover, .retry-button:hover {
+.restart-button:hover {
   background: #9f8b77;
 }
 
-/* کانتینر اصلی بازی با position relative */
 .game-container {
   position: relative;
   background: #bbada0;
   border-radius: 6px;
+  /* ✨ این دو خط باعث می‌شوند که کانتینر همیشه مربع بماند */
   width: var(--grid-size);
   height: var(--grid-size);
   padding: var(--grid-gap);
@@ -87,7 +94,7 @@
   border-radius: 3px;
 }
 
-/* کانتینر کاشی‌ها که روی گرید قرار می‌گیرد */
+/* کانتینر کاشی‌ها */
 .tile-container {
   position: absolute;
   top: 0;
@@ -110,15 +117,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 3px;
   text-align: center;
   font-weight: bold;
-  font-size: calc(var(--cell-size) * 0.45);
+  font-size: clamp(1rem, 9vw, 2.5rem); /* فونت بزرگ و واکنش‌گرا برای کاشی‌ها */
   color: #776e65;
   background: #eee4da;
 }
 
-/* موقعیت‌دهی کاشی‌ها با استفاده از CSS variables */
+/* موقعیت‌دهی کاشی‌ها (بدون تغییر) */
 .tile-position-1-1 { transform: translate(calc(0 * (var(--cell-size) + var(--grid-gap)) + var(--grid-gap)), calc(0 * (var(--cell-size) + var(--grid-gap)) + var(--grid-gap))); }
 .tile-position-2-1 { transform: translate(calc(1 * (var(--cell-size) + var(--grid-gap)) + var(--grid-gap)), calc(0 * (var(--cell-size) + var(--grid-gap)) + var(--grid-gap))); }
 .tile-position-3-1 { transform: translate(calc(2 * (var(--cell-size) + var(--grid-gap)) + var(--grid-gap)), calc(0 * (var(--cell-size) + var(--grid-gap)) + var(--grid-gap))); }
@@ -147,13 +153,13 @@
 .tile-16 .tile-inner { color: #f9f6f2; background: #f59563; }
 .tile-32 .tile-inner { color: #f9f6f2; background: #f67c5f; }
 .tile-64 .tile-inner { color: #f9f6f2; background: #f65e3b; }
-.tile-128 .tile-inner { color: #f9f6f2; background: #edcf72; font-size: calc(var(--cell-size) * 0.35); }
-.tile-256 .tile-inner { color: #f9f6f2; background: #edcc61; font-size: calc(var(--cell-size) * 0.35); }
-.tile-512 .tile-inner { color: #f9f6f2; background: #edc850; font-size: calc(var(--cell-size) * 0.35); }
-.tile-1024 .tile-inner { color: #f9f6f2; background: #edc53f; font-size: calc(var(--cell-size) * 0.25); }
-.tile-2048 .tile-inner { color: #f9f6f2; background: #edc22e; font-size: calc(var(--cell-size) * 0.25); }
+.tile-128 .tile-inner { color: #f9f6f2; background: #edcf72; font-size: clamp(1rem, 7vw, 2.2rem); }
+.tile-256 .tile-inner { color: #f9f6f2; background: #edcc61; font-size: clamp(1rem, 7vw, 2.2rem); }
+.tile-512 .tile-inner { color: #f9f6f2; background: #edc850; font-size: clamp(1rem, 7vw, 2.2rem); }
+.tile-1024 .tile-inner { color: #f9f6f2; background: #edc53f; font-size: clamp(0.8rem, 6vw, 1.8rem); }
+.tile-2048 .tile-inner { color: #f9f6f2; background: #edc22e; font-size: clamp(0.8rem, 6vw, 1.8rem); }
 
-/* انیمیشن‌ها */
+/* انیمیشن‌ها (بدون تغییر) */
 @keyframes appear {
   from { opacity: 0; transform: scale(0); }
   to { opacity: 1; transform: scale(1); }
@@ -164,7 +170,7 @@
   animation-fill-mode: backwards;
 }
 
-/* پیام پایان بازی */
+/* پیام پایان بازی (بدون تغییر) */
 .game-message {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
