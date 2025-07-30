@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Leaderboard from "./components/Leaderboard";
 import GameLobby from "./components/GameLobby";
-import Game2048 from "./components/Game2048"; // کامپوننت جدید بازی
-import DefaultAvatar from "./assets/default-avatar.png";
+import Game2048 from "./components/Game2048";
+import DefaultAvatar from "./assets/default-avatar.png"; // مسیر را چک کنید
 import { motion, AnimatePresence } from "framer-motion";
 
-const API_BASE = "https://momis2048.momis.studio/api"; // یا آدرس بک‌اند شما
+const API_BASE = "https://momis2048.momis.studio/api";
 
 function App() {
-    const [view, setView] = useState("auth"); // auth, lobby, game, board
+    const [view, setView] = useState("auth");
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [authLoading, setAuthLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -21,52 +21,29 @@ function App() {
     );
     const [leaderboardKey, setLeaderboardKey] = useState(Date.now());
     const [currentGameEventId, setCurrentGameEventId] = useState(null);
-
-    const [sequence, setSequence] = useState([]);
-    const [level, setLevel] = useState(0);
-    const [isPlayerTurn, setIsPlayerTurn] = useState(false);
-    const [litPad, setLitPad] = useState(null);
-    const [message, setMessage] = useState("حافظه رنگ‌ها");
     const [finalScore, setFinalScore] = useState(null);
 
-    const handleGameOver = useCallback(
-        async (score) => {
-            console.log(
-                `%c[handleGameOver] Game Over. Final Score to be saved: ${score}`,
-                "color: #DC143C;"
-            );
-
-            setMessage(`You lose! Your reach level ${score}`);
-            setFinalScore(score);
-            setIsPlayerTurn(false);
-
-            if (score > 0 && token) {
-                try {
-                    await fetch(`${API_BASE}/gameOver`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({
-                            score: score,
-                            eventId: currentGameEventId,
-                        }),
-                    });
-                } catch (err) {
-                    console.error("Failed to save score:", err);
-                    setError("Error in saving the score");
-                }
+    const handleGameOver = useCallback(async (score) => {
+        console.log(`[App.js] Game Over. Score: ${score}`);
+        setFinalScore(score);
+        if (score > 0 && token) {
+            try {
+                await fetch(`${API_BASE}/gameOver`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ score, eventId: currentGameEventId }),
+                });
+            } catch (err) {
+                setError("Failed to save score");
             }
+        }
+        setTimeout(() => {
+            setView("board");
+            setLeaderboardKey(Date.now());
+        }, 2000);
+    }, [token, currentGameEventId]);
 
-            setTimeout(() => {
-                setView("board");
-                setLeaderboardKey(Date.now());
-            }, 500);
-        },
-        [token, currentGameEventId]
-    );
-    
+
     const startGame = useCallback(
         (eventId) => {
             console.log(`[App.js] Starting Game for event: ${eventId}`);
