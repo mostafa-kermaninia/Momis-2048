@@ -65,15 +65,17 @@ const slide = (r) => {
         z = Array(m).fill(null);
     return a.concat(z);
 };
-const combine = (r) => {
-    let s = 0;
-    for (let i = 0; i < 3; i++)
-        r[i] &&
-            r[i].value === r[i + 1]?.value &&
-            ((s += r[i].value * 2),
-            (r[i] = { ...r[i], value: r[i].value * 2, isMerged: !0 }),
-            (r[i + 1] = null));
-    return { newRow: r, score: s };
+// کد اصلاح‌شده و صحیح
+const combine = (row) => {
+    let scoreToAdd = 0;
+    for (let i = 0; i < 3; i++) {
+        if (row[i] && row[i].value === row[i + 1]?.value) {
+            scoreToAdd += row[i].value * 2;
+            row[i] = { ...row[i], value: row[i].value * 2, isMerged: true };
+            row[i + 1] = null;
+        }
+    }
+    return { newRow: row, score: scoreToAdd };
 };
 const transposeGrid = (g) => {
     const n = createEmptyGrid();
