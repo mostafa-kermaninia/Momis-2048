@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react'; // ✨ useRef اضافه شد
 import './Game2048.css';
 
+// ... (تمام توابع کمکی بازی مثل createEmptyGrid, addRandomTile, move و... بدون تغییر باقی می‌مانند)
 const localStorageManager = {
   getBestScore: () => parseInt(window.localStorage.getItem('bestScore') || '0', 10),
   setBestScore: (score) => window.localStorage.setItem('bestScore', score),
 };
 
-// توابع کمکی بازی
 const createEmptyGrid = () => Array.from({ length: 4 }, () => Array(4).fill(null));
 
 const getRandomAvailableCell = (grid) => {
@@ -34,20 +34,18 @@ const addRandomTile = (grid) => {
   return newGrid;
 };
 
-// بررسی اینکه آیا حرکتی ممکن است یا نه
 const movesAvailable = (grid) => {
     for (let y = 0; y < 4; y++) {
         for (let x = 0; x < 4; x++) {
             const cell = grid[y][x];
-            if (!cell) return true; // خانه خالی وجود دارد
-            if (x < 3 && cell.value === grid[y][x + 1]?.value) return true; // امکان ادغام افقی
-            if (y < 3 && cell.value === grid[y + 1][x]?.value) return true; // امکان ادغام عمودی
+            if (!cell) return true;
+            if (x < 3 && cell.value === grid[y][x + 1]?.value) return true;
+            if (y < 3 && cell.value === grid[y + 1][x]?.value) return true;
         }
     }
     return false;
 };
 
-// توابع حرکت
 const slide = (row) => {
   const arr = row.filter(val => val);
   const missing = 4 - arr.length;
@@ -67,7 +65,6 @@ const combine = (row) => {
   return { newRow: row, score: scoreToAdd };
 };
 
-// ✨ تغییر در این تابع برای سادگی و خوانایی
 const transposeGrid = (grid) => {
     const newGrid = createEmptyGrid();
     for (let y = 0; y < 4; y++) {
@@ -83,7 +80,6 @@ const move = (grid, direction) => {
     let score = 0;
     let moved = false;
     
-    // 0: left, 1: up, 2: right, 3: down
     const isHorizontal = direction === 0 || direction === 2;
     const isReversed = direction === 2 || direction === 3;
 
@@ -117,11 +113,15 @@ const move = (grid, direction) => {
 
 
 // کامپوننت اصلی بازی
-const Game2048 = ({ onGameOver }) => { // ✨ دریافت onGameOver به عنوان prop
+const Game2048 = ({ onGameOver }) => {
   const [grid, setGrid] = useState(createEmptyGrid());
   const [score, setScore] = useState(0);
   const [bestScore, setBestScore] = useState(localStorageManager.getBestScore());
   const [isGameOver, setGameOver] = useState(false);
+
+  // ✨ بخش جدید: State برای ذخیره مختصات شروع لمس
+  const [touchStart, setTouchStart] = useState({ x: 0, y: 0 });
+  const gameContainerRef = useRef(null); // ✨ رفرنس به کانتینر بازی
 
   const setupGame = useCallback(() => {
     let newGrid = addRandomTile(createEmptyGrid());
@@ -135,20 +135,10 @@ const Game2048 = ({ onGameOver }) => { // ✨ دریافت onGameOver به عن�
     setupGame();
   }, [setupGame]);
 
-  const handleKeyDown = useCallback((e) => {
+  // ✨ تابع جدید: پردازش حرکت و پایان بازی
+  const processMove = useCallback((direction) => {
     if (isGameOver) return;
     
-    let direction = -1;
-    // ✨ منطق کلیدها اصلاح شد
-    switch (e.key) {
-      case 'ArrowUp':    direction = 1; break;
-      case 'ArrowRight': direction = 2; break;
-      case 'ArrowDown':  direction = 3; break;
-      case 'ArrowLeft':  direction = 0; break;
-      default: return;
-    }
-    e.preventDefault();
-
     const { newGrid, score: newScore, moved } = move(grid, direction);
 
     if (moved) {
@@ -163,28 +153,75 @@ const Game2048 = ({ onGameOver }) => { // ✨ دریافت onGameOver به عن�
             localStorageManager.setBestScore(updatedScore);
         }
         
-        // ✨ چک کردن وضعیت پایان بازی
         if (!movesAvailable(gridWithNewTile)) {
             setGameOver(true);
-            // فراخوانی تابع از App.js
             onGameOver(updatedScore); 
         }
     }
   }, [grid, score, bestScore, isGameOver, onGameOver]);
+
+  // مدیریت کیبورد
+  const handleKeyDown = useCallback((e) => {
+    let direction = -1;
+    switch (e.key) {
+      case 'ArrowUp':    direction = 1; break;
+      case 'ArrowRight': direction = 2; break;
+      case 'ArrowDown':  direction = 3; break;
+      case 'ArrowLeft':  direction = 0; break;
+      default: return;
+    }
+    e.preventDefault();
+    processMove(direction);
+  }, [processMove]);
   
+  // ✨ بخش جدید: توابع مدیریت لمس
+  const handleTouchStart = (e) => {
+    if (e.touches.length > 1) return; // فقط یک انگشت
+    setTouchStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+  };
+
+  const handleTouchEnd = (e) => {
+    if (e.changedTouches.length > 1) return;
+    const touchEnd = { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+
+    const dx = touchEnd.x - touchStart.x;
+    const dy = touchEnd.y - touchStart.y;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+
+    if (Math.max(absDx, absDy) > 30) { // حداقل 30 پیکسل جابجایی
+      // تشخیص جهت اصلی (افقی یا عمودی)
+      const direction = absDx > absDy ? (dx > 0 ? 2 : 0) : (dy > 0 ? 3 : 1);
+      processMove(direction);
+    }
+  };
+
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
+
+    // ✨ اتصال رویدادهای لمسی به کانتینر بازی
+    const gameElement = gameContainerRef.current;
+    if (gameElement) {
+        gameElement.addEventListener('touchstart', handleTouchStart, { passive: true });
+        gameElement.addEventListener('touchend', handleTouchEnd, { passive: true });
+    }
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      if (gameElement) {
+        gameElement.removeEventListener('touchstart', handleTouchStart);
+        gameElement.removeEventListener('touchend', handleTouchEnd);
+      }
     };
-  }, [handleKeyDown]);
+  }, [handleKeyDown]); // وابستگی handleKeyDown کافیست چون processMove را در خود دارد
 
   const tiles = grid.flatMap((row, y) => 
     row.map((cell, x) => (cell ? { ...cell, x, y } : null))
   ).filter(Boolean);
 
   return (
-    <div className="game-wrapper">
+    // ✨ اضافه کردن ref به این div
+    <div className="game-wrapper" ref={gameContainerRef}>
       <div className="game-header">
         <h1 className="title">2048</h1>
         <div className="scores-container">
@@ -201,9 +238,6 @@ const Game2048 = ({ onGameOver }) => { // ✨ دریافت onGameOver به عن�
         {isGameOver && (
             <div className="game-message">
                 <p>Game Over!</p>
-                <div className="lower">
-                    {/* دکمه Try Again دیگر اینجا نیست، چون به صفحه لیدربورد منتقل می‌شود */}
-                </div>
             </div>
         )}
 

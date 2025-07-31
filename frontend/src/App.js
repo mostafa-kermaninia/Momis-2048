@@ -162,7 +162,7 @@ function App() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
                     >
-                        Color Memory
+                        MOMIS 2048
                     </motion.h1>
                     <motion.p
                         className="text-lg text-gray-300 mb-8"
