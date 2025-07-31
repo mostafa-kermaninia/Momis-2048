@@ -148,27 +148,33 @@ const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
         setupGame();
     }, [setupGame]);
 
-const processMove = useCallback(
+    const processMove = useCallback(
         (direction) => {
             if (isGameOver) return;
             const { newGrid, score: newScore, moved } = move(grid, direction);
 
             if (moved) {
-                const { grid: gridWithNewTile, newTile } = addRandomTile(newGrid);
-                
-                const directionMap = { 0: "left", 1: "up", 2: "right", 3: "down" };
+                const { grid: gridWithNewTile, newTile } =
+                    addRandomTile(newGrid);
+
+                const directionMap = {
+                    0: "left",
+                    1: "up",
+                    2: "right",
+                    3: "down",
+                };
                 const moveName = directionMap[direction];
 
-                // ✨ راه‌حل اصلی: ساختن سناریوی جدید به صورت دستی
+                // ✨ راه‌حل اصلی: ساختن سناریوی جدید به صورت دستی قبل از هر کاری
                 const updatedScenario = {
                     ...gameScenario,
                     moves: [...gameScenario.moves, moveName],
                     newTiles: [...gameScenario.newTiles, newTile],
                 };
-                
+
                 // حالا state را با سناریوی جدید آپدیت می‌کنیم
                 setGameScenario(updatedScenario);
-                
+
                 setGrid(gridWithNewTile);
                 const updatedScore = score + newScore;
                 setScore(updatedScore);
@@ -187,7 +193,7 @@ const processMove = useCallback(
         },
         [grid, score, bestScore, isGameOver, onGameOver, eventId, gameScenario]
     );
-
+    
     const handleKeyDown = useCallback(
         (e) => {
             let direction = -1;
@@ -208,7 +214,8 @@ const processMove = useCallback(
                     return;
             }
             e.preventDefault();
-            processMove(direction);
+
+            Move(direction);
         },
         [processMove]
     );
