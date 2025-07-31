@@ -31,21 +31,21 @@ const getRandomAvailableCell = (grid) => {
     return null;
 };
 
-// ✨ تابع افزودن کاشی حالا خود کاشی را هم برمی‌گرداند تا بتوانیم آن را ثبت کنیم
 const addRandomTile = (grid) => {
     const newGrid = grid.map((row) => [...row]);
     const cell = getRandomAvailableCell(newGrid);
-    let newTile = null;
+    let newTileDataForScenario = null;
     if (cell) {
         const value = Math.random() < 0.9 ? 2 : 4;
-        newTile = { value, ...cell }; // کاشی جدید با مقدار و موقعیت
         newGrid[cell.y][cell.x] = {
             value,
             id: Date.now() + Math.random(),
             isNew: true,
         };
+        // This is the clean object we'll send to the server
+        newTileDataForScenario = { value, position: { x: cell.x, y: cell.y } };
     }
-    return { grid: newGrid, newTile };
+    return { grid: newGrid, newTileData: newTileDataForScenario };
 };
 
 // ... (توابع movesAvailable, slide, combine, transposeGrid, move بدون تغییر باقی می‌مانند)
@@ -115,12 +115,9 @@ const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
     );
     const [isGameOver, setGameOver] = useState(false);
 
-    // ✨ مرحله ۱: ساختار داده جدید برای سناریوی کامل بازی
-    const [gameScenario, setGameScenario] = useState({
-        initialTiles: [], // دو کاشی اول
-        moves: [], // تاریخچه حرکات
-        newTiles: [], // کاشی‌های جدیدی که بعد از هر حرکت اضافه می‌شوند
-    });
+    // ✨ CHANGED: Simplified state for scenario. We only need moves and the list of new tiles.
+    const [moves, setMoves] = useState([]);
+    const [newTiles, setNewTiles] = useState([]);
 
     useEffect(() => {
         setBestScore(localStorageManager.getBestScore(eventId));
@@ -128,22 +125,26 @@ const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
 
     const setupGame = useCallback(() => {
         let tempGrid = createEmptyGrid();
+
         const firstTileResult = addRandomTile(tempGrid);
         tempGrid = firstTileResult.grid;
+
         const secondTileResult = addRandomTile(tempGrid);
 
         setGrid(secondTileResult.grid);
         setScore(0);
         setGameOver(false);
 
-        // ✨ مرحله ۲: ثبت سناریوی اولیه بازی
-        setGameScenario({
-            initialTiles: [firstTileResult.newTile, secondTileResult.newTile],
-            moves: [],
-            newTiles: [],
-        });
-    }, []);
+        // ✨ CHANGED: Initialize scenario state correctly.
+        setMoves([]);
+        // The server needs ALL new tiles, including the first two.
+        setNewTiles([
+            firstTileResult.newTileData,
+            secondTileResult.newTileData,
+        ]);
+    }, []); // No dependencies needed, it's a self-contained setup function
 
+    // This effect runs only once on component mount to setup the game
     useEffect(() => {
         setupGame();
     }, [setupGame]);
@@ -155,28 +156,25 @@ const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
             const { newGrid, score: newScore, moved } = move(grid, direction);
 
             if (moved) {
-                const { grid: gridWithNewTile, newTile } =
+                const { grid: gridWithNewTile, newTileData } =
                     addRandomTile(newGrid);
+                const updatedScore = score + newScore;
 
+                setGrid(gridWithNewTile);
+                setScore(updatedScore);
+
+                // ✨ CHANGED: Use functional updates to guarantee you have the latest state.
                 const directionMap = {
                     0: "left",
                     1: "up",
                     2: "right",
                     3: "down",
                 };
-                const moveName = directionMap[direction];
-
-                // Use functional updates to avoid stale state
-                const updatedScore = score + newScore;
-                setScore(updatedScore);
-                setGrid(gridWithNewTile);
-
-                const updatedScenario = {
-                    ...gameScenario,
-                    moves: [...gameScenario.moves, moveName],
-                    newTiles: [...gameScenario.newTiles, newTile],
-                };
-                setGameScenario(updatedScenario);
+                setMoves((prevMoves) => [
+                    ...prevMoves,
+                    directionMap[direction],
+                ]);
+                setNewTiles((prevTiles) => [...prevTiles, newTileData]);
 
                 if (updatedScore > bestScore) {
                     setBestScore(updatedScore);
@@ -185,11 +183,27 @@ const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
 
                 if (!movesAvailable(gridWithNewTile)) {
                     setGameOver(true);
-                    onGameOver(updatedScore, updatedScenario);
+
+                    // ✨ CHANGED: Construct the final scenario object right before sending it.
+                    // This ensures the data is perfectly up-to-date.
+                    const finalScenario = {
+                        moves: [...moves, directionMap[direction]],
+                        newTiles: [...newTiles, newTileData],
+                    };
+                    onGameOver(updatedScore, finalScenario);
                 }
             }
         },
-        [grid, score, bestScore, isGameOver, onGameOver, eventId, gameScenario] // Dependencies are kept for now, but functional updates are safer.
+        [
+            grid,
+            score,
+            bestScore,
+            isGameOver,
+            onGameOver,
+            eventId,
+            moves,
+            newTiles,
+        ]
     );
 
     const handleKeyDown = useCallback(
@@ -200,26 +214,21 @@ const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
                 ArrowRight: 2,
                 ArrowDown: 3,
             };
-
             const direction = directionMap[e.key];
-
             if (direction !== undefined) {
                 e.preventDefault();
-                // ✅ FIX 2: Call `processMove`, not the utility `move` function
                 processMove(direction);
             }
         },
-        [processMove] // Dependency is correct now
+        [processMove]
     );
 
     useEffect(() => {
         window.addEventListener("keydown", handleKeyDown);
-        return () => {
-            window.removeEventListener("keydown", handleKeyDown);
-        };
+        return () => window.removeEventListener("keydown", handleKeyDown);
     }, [handleKeyDown]);
 
-    // ... JSX شما بدون تغییر باقی می‌ماند ...
+    // ... JSX remains unchanged ...
     const tiles = grid
         .flatMap((row, y) =>
             row.map((cell, x) => (cell ? { ...cell, x, y } : null))

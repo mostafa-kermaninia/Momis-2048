@@ -104,51 +104,53 @@ app.post("/api/telegram-auth", async (req, res) => {
         });
     }
 });
+
 app.post("/api/gameOver", authenticateToken, async (req, res) => {
-    // مرحله ۱: به جای امتیاز، تاریخچه حرکات را دریافت می‌کنیم
-    const { moveHistory, eventId } = req.body;
+    // مرحله ۱: دریافت آبجکت gameScenario
+    const { gameScenario, eventId } = req.body;
     const userId = req.user.userId;
 
-    // اعتبار سنجی ورودی
-    if (!Array.isArray(moveHistory)) {
-        // ✨ مشکل لاگر حل شد: به جای warn از info یا error استفاده می‌کنیم
+    // مرحله ۲: اعتبار سنجی ساختار جدید داده
+    if (
+        !gameScenario ||
+        !Array.isArray(gameScenario.moves) ||
+        !Array.isArray(gameScenario.newTiles)
+    ) {
         logger.info(
-            `[Security] Invalid data format (moveHistory is not an array) for user ${userId}`
+            `[Security] Invalid data format (gameScenario is malformed) for user ${userId}`
         );
         return res
             .status(400)
-            .json({ status: "error", message: "Invalid game data." });
+            .json({ status: "error", message: "Invalid game data format." });
     }
 
-    if (moveHistory.length < 2) {
-        logger.info(
-            `[Security] Insufficient moves received (${moveHistory.length}) for user ${userId}`
-        );
+    const { moves, newTiles } = gameScenario;
+
+    if (moves.length === 0) {
+        logger.info(`[Security] No moves received for user ${userId}`);
         return res
             .status(400)
-            .json({
-                status: "error",
-                message: "Not enough moves to calculate a valid score.",
-            });
+            .json({ status: "error", message: "Game cannot have zero moves." });
     }
 
     logger.info(
-        `[gameOver] Received ${
-            moveHistory.length
-        } moves for user: ${userId} in event: ${eventId || "Free Play"}`
+        `[gameOver] Received scenario with ${moves.length} moves and ${
+            newTiles.length
+        } new tiles for user: ${userId} in event: ${eventId || "Free Play"}`
     );
 
     try {
-        // مرحله ۲: بازی را در سرور شبیه‌سازی کرده و امتیاز واقعی را محاسبه می‌کنیم
-        const serverCalculatedScore = simulateGameAndGetScore(moveHistory);
+        // مرحله ۳: بازی را در سرور با سناریوی کامل شبیه‌سازی می‌کنیم
+        // ❗️ تابع simulateGameAndGetScore باید بتواند gameScenario را بپذیرد
+        const serverCalculatedScore = simulateGameAndGetScore(gameScenario);
 
         logger.info(
             `[gameOver] Server-validated score: ${serverCalculatedScore} for user: ${userId}`
         );
 
-        // مرحله ۳: امتیازی که توسط سرور محاسبه شده را در دیتابیس ذخیره می‌کنیم
+        // مرحله ۴: امتیاز محاسبه شده توسط سرور را در دیتابیس ذخیره می‌کنیم
         await Score.create({
-            score: serverCalculatedScore, // <--- استفاده از امتیاز امن سرور
+            score: serverCalculatedScore,
             userTelegramId: userId,
             eventId: eventId || null,
         });

@@ -30,9 +30,11 @@ function App() {
         setLeaderboardKey(Date.now()); // برای رفرش شدن کامپوننت
     }, []);
 
+    // داخل فایل App.js
+
     const handleGameOver = useCallback(
         async (score, scenario) => {
-            // نام متغیر به scenario تغییر کرد
+            // scenario حالا شامل moves و newTiles است
             console.log(
                 `[App.js] Game Over. Final Score: ${score}. Sending scenario with ${scenario.moves.length} moves.`
             );
@@ -40,12 +42,14 @@ function App() {
 
             if (token) {
                 try {
+                    // ✅ این بخش را اصلاح می‌کنیم
                     const body = {
-                        gameScenario: scenario, // <--- ارسال کل سناریو
+                        // کل آبجکت scenario را تحت کلید gameScenario ارسال می‌کنیم
+                        gameScenario: scenario,
                         eventId: currentGameEventId,
-                        finalScore: score, // برای لاگ‌گیری در سرور
                     };
 
+                    // هیچ تغییر دیگری در fetch لازم نیست
                     await fetch(`${API_BASE}/gameOver`, {
                         method: "POST",
                         headers: {
