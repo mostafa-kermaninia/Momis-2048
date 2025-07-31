@@ -14,7 +14,8 @@ const combine = (row) => {
     for (let i = 0; i < 3; i++) {
         if (row[i] && row[i].value === row[i + 1]?.value) {
             scoreToAdd += row[i].value * 2;
-            row[i] = { value: row[i].value * 2 };
+            // آبجکت کامل را حفظ می‌کنیم، دقیقاً مثل کلاینت
+            row[i] = { ...row[i], value: row[i].value * 2, isMerged: true };
             row[i + 1] = null;
         }
     }
@@ -30,43 +31,31 @@ const transposeGrid = (grid) => {
     }
     return newGrid;
 };
-
-const move = (grid, direction) => {
-    let currentGrid = grid.map((r) => r.map((c) => (c ? { ...c } : null)));
-    let score = 0;
-
-    const isHorizontal = direction === 0 || direction === 2; // 0: left, 2: right
-    const isReversed = direction === 2 || direction === 3; // 2: right, 3: down
-
-    if (!isHorizontal) currentGrid = transposeGrid(currentGrid);
-
+const move = (g, d) => {
+    // در سرور نیازی به isNew و isMerged نداریم، اما ساختار کلی را حفظ می‌کنیم
+    let G = g.map((r) => r.map((c) => (c ? { ...c } : null))),
+        s = 0,
+        m = false; // moved flag
+    const H = d === 0 || d === 2,
+        R = d === 2 || d === 3;
+    if (!H) G = transposeGrid(G);
     for (let y = 0; y < 4; y++) {
-        let row = [...currentGrid[y]];
-        if (isReversed) row.reverse();
-
-        const slidRow = slide(row);
-        const { newRow, score: newScore } = combine(slidRow);
-        let finalRow = slide(newRow);
-
-        score += newScore;
-
-        if (isReversed) finalRow.reverse();
-        currentGrid[y] = finalRow;
+        const O = [...G[y]];
+        let r = [...O];
+        if (R) r.reverse();
+        const S = slide(r),
+            { newRow: N, score: C } = combine(S);
+        let F = slide(N);
+        s += C;
+        if (R) F.reverse();
+        G[y] = F;
+        // بررسی می‌کنیم که آیا حرکتی انجام شده یا نه
+        for (let x = 0; x < 4; x++) if (O[x]?.value !== F[x]?.value) m = true;
     }
-
-    if (!isHorizontal) currentGrid = transposeGrid(currentGrid);
-
-    return { newGrid: currentGrid, score };
+    if (!H) G = transposeGrid(G);
+    return { newGrid: G, score: s, moved: m };
 };
 
-// ✨ تابع کمکی برای چاپ کردن grid در کنسول
-const printGrid = (grid) => {
-    console.log("--------------------");
-    grid.forEach((row) => {
-        console.log(row.map((cell) => (cell ? cell.value : 0)).join("\t"));
-    });
-    console.log("--------------------");
-};
 
 function simulateGameAndGetScore(gameScenario) {
     const { moves, initialTiles, newTiles: moveTiles } = gameScenario;
