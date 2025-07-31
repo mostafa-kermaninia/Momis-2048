@@ -193,7 +193,7 @@ const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
         },
         [grid, score, bestScore, isGameOver, onGameOver, eventId, gameScenario]
     );
-    
+
     const handleKeyDown = useCallback(
         (e) => {
             let direction = -1;
@@ -215,7 +215,7 @@ const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
             }
             e.preventDefault();
 
-            Move(direction);
+            move(direction);
         },
         [processMove]
     );

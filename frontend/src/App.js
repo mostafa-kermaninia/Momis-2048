@@ -30,35 +30,43 @@ function App() {
         setLeaderboardKey(Date.now()); // برای رفرش شدن کامپوننت
     }, []);
 
-const handleGameOver = useCallback(async (score, scenario) => { // نام متغیر به scenario تغییر کرد
-        console.log(`[App.js] Game Over. Final Score: ${score}. Sending scenario with ${scenario.moves.length} moves.`);
-        setFinalScore(score);
+    const handleGameOver = useCallback(
+        async (score, scenario) => {
+            // نام متغیر به scenario تغییر کرد
+            console.log(
+                `[App.js] Game Over. Final Score: ${score}. Sending scenario with ${scenario.moves.length} moves.`
+            );
+            setFinalScore(score);
 
-        if (token) {
-            try {
-                const body = {
-                    gameScenario: scenario, // <--- ارسال کل سناریو
-                    eventId: currentGameEventId,
-                    finalScore: score // برای لاگ‌گیری در سرور
-                };
+            if (token) {
+                try {
+                    const body = {
+                        gameScenario: scenario, // <--- ارسال کل سناریو
+                        eventId: currentGameEventId,
+                        finalScore: score, // برای لاگ‌گیری در سرور
+                    };
 
-                await fetch(`${API_BASE}/gameOver`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-                    body: JSON.stringify(body),
-                });
-            } catch (err) {
-                console.error("Failed to save score:", err);
-                setError("Failed to save score");
+                    await fetch(`${API_BASE}/gameOver`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify(body),
+                    });
+                } catch (err) {
+                    console.error("Failed to save score:", err);
+                    setError("Failed to save score");
+                }
             }
-        }
-        
-        setTimeout(() => {
-            setView("board");
-            setLeaderboardKey(Date.now());
-        }, 2000);
 
-    }, [token, currentGameEventId]);
+            setTimeout(() => {
+                setView("board");
+                setLeaderboardKey(Date.now());
+            }, 2000);
+        },
+        [token, currentGameEventId]
+    );
 
     const startGame = useCallback(
         (eventId) => {
