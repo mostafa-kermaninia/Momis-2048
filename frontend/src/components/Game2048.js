@@ -107,7 +107,6 @@ const move = (g, d) => {
     return { newGrid: G, score: s, moved: m };
 };
 
-
 const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
     const [grid, setGrid] = useState(createEmptyGrid());
     const [score, setScore] = useState(0);
@@ -152,6 +151,7 @@ const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
     const processMove = useCallback(
         (direction) => {
             if (isGameOver) return;
+
             const { newGrid, score: newScore, moved } = move(grid, direction);
 
             if (moved) {
@@ -166,19 +166,17 @@ const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
                 };
                 const moveName = directionMap[direction];
 
-                // ✨ راه‌حل اصلی: ساختن سناریوی جدید به صورت دستی قبل از هر کاری
+                // Use functional updates to avoid stale state
+                const updatedScore = score + newScore;
+                setScore(updatedScore);
+                setGrid(gridWithNewTile);
+
                 const updatedScenario = {
                     ...gameScenario,
                     moves: [...gameScenario.moves, moveName],
                     newTiles: [...gameScenario.newTiles, newTile],
                 };
-
-                // حالا state را با سناریوی جدید آپدیت می‌کنیم
                 setGameScenario(updatedScenario);
-
-                setGrid(gridWithNewTile);
-                const updatedScore = score + newScore;
-                setScore(updatedScore);
 
                 if (updatedScore > bestScore) {
                     setBestScore(updatedScore);
@@ -187,38 +185,31 @@ const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
 
                 if (!movesAvailable(gridWithNewTile)) {
                     setGameOver(true);
-                    // ✨ و سناریوی آپدیت‌شده را مستقیماً به onGameOver پاس می‌دهیم
                     onGameOver(updatedScore, updatedScenario);
                 }
             }
         },
-        [grid, score, bestScore, isGameOver, onGameOver, eventId, gameScenario]
+        [grid, score, bestScore, isGameOver, onGameOver, eventId, gameScenario] // Dependencies are kept for now, but functional updates are safer.
     );
 
     const handleKeyDown = useCallback(
         (e) => {
-            let direction = -1;
-            switch (e.key) {
-                case "ArrowUp":
-                    direction = 1;
-                    break;
-                case "ArrowRight":
-                    direction = 2;
-                    break;
-                case "ArrowDown":
-                    direction = 3;
-                    break;
-                case "ArrowLeft":
-                    direction = 0;
-                    break;
-                default:
-                    return;
-            }
-            e.preventDefault();
+            const directionMap = {
+                ArrowLeft: 0,
+                ArrowUp: 1,
+                ArrowRight: 2,
+                ArrowDown: 3,
+            };
 
-            move(direction);
+            const direction = directionMap[e.key];
+
+            if (direction !== undefined) {
+                e.preventDefault();
+                // ✅ FIX 2: Call `processMove`, not the utility `move` function
+                processMove(direction);
+            }
         },
-        [processMove]
+        [processMove] // Dependency is correct now
     );
 
     useEffect(() => {
