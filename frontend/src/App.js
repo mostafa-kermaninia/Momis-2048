@@ -24,6 +24,12 @@ function App() {
     const [currentGameEventId, setCurrentGameEventId] = useState(null);
     const [finalScore, setFinalScore] = useState(null);
 
+    const handleShowLeaderboard = useCallback((eventId) => {
+        setCurrentGameEventId(eventId); // ذخیره می‌کنیم کدام لیدربورد نمایش داده شود
+        setView("board");
+        setLeaderboardKey(Date.now()); // برای رفرش شدن کامپوننت
+    }, []);
+
     const handleGameOver = useCallback(
         async (score) => {
             console.log(`[App.js] Game Over. Score: ${score}`);
@@ -153,6 +159,10 @@ function App() {
         }
     }, []);
 
+    const handleGoHome = useCallback(() => {
+        setView("lobby");
+    }, []);
+
     useEffect(() => {
         if (token && userData) {
             setIsAuthenticated(true);
@@ -210,6 +220,7 @@ function App() {
             view === "lobby" && (
                 <GameLobby
                     onGameStart={startGame}
+                    onShowLeaderboard={handleShowLeaderboard}
                     userData={userData}
                     onLogout={handleLogout}
                     onImageError={handleImageError}
@@ -217,14 +228,19 @@ function App() {
             ),
         [view, startGame, userData, handleLogout, handleImageError]
     );
+
     const gameContent = useMemo(
         () =>
             view === "game" && (
                 <div className="flex flex-col items-center gap-6 w-full max-w-md text-center">
-                    <Game2048 onGameOver={handleGameOver} />
+                    {/* ✨ پاس دادن هر دو تابع */}
+                    <Game2048
+                        onGameOver={handleGameOver}
+                        onGoHome={handleGoHome}
+                    />
                 </div>
             ),
-        [view, handleGameOver]
+        [view, handleGameOver, handleGoHome] // ✨ handleGoHome به وابستگی‌ها اضافه شد
     );
 
     const leaderboardContent = useMemo(
@@ -251,7 +267,7 @@ function App() {
     );
 
     return (
-        <div className="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 text-white p-4 font-[Vazirmatn]">
+        <div className="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-indigo-900 text-white p-4 font-[Vazirmatn]">
             {error && (
                 <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-md shadow-lg z-50">
                     {error}

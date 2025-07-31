@@ -124,7 +124,7 @@ const move = (grid, direction) => {
 };
 
 // کامپوننت اصلی بازی
-const Game2048 = ({ onGameOver }) => {
+const Game2048 = ({ onGameOver, onGoHome }) => {
     const [grid, setGrid] = useState(createEmptyGrid());
     const [score, setScore] = useState(0);
     const [bestScore, setBestScore] = useState(
@@ -214,17 +214,25 @@ const Game2048 = ({ onGameOver }) => {
     return (
         <div className="game-wrapper">
             <div className="game-header">
-                <h3 className="title">MOMIS 2048 Game</h3>
+                <h1 className="title">MOMIS 2048</h1>
                 <div className="scores-container">
-                    <div className="score-container">{score}</div>
-                    <div className="best-container">{bestScore}</div>
+                    {/* ✨ مرحله ۲: افزودن لیبل به امتیازها */}
+                    <div className="score-box">
+                        <span className="score-label">SCORE</span>
+                        {score}
+                    </div>
+                    <div className="score-box">
+                        <span className="score-label">BEST</span>
+                        {bestScore}
+                    </div>
                 </div>
             </div>
             <div className="above-game">
-                <a className="restart-button" onClick={setupGame}>
+                <a className="game-button" onClick={setupGame}>
                     New Game
                 </a>
-                <a className="restart-button" onClick={setupGame}>
+                {/* ✨ مرحله ۱: اتصال دکمه Home به تابع onGoHome */}
+                <a className="game-button" onClick={onGoHome}>
                     Home
                 </a>
             </div>
@@ -254,7 +262,6 @@ const Game2048 = ({ onGameOver }) => {
                 </div>
             </div>
 
-            {/* ✨ بخش جدید: دکمه‌های کنترلی برای موبایل */}
             <div className="controls-container">
                 <div className="controls-row">
                     <button
@@ -273,17 +280,15 @@ const Game2048 = ({ onGameOver }) => {
                     </button>
                     <button
                         className="control-button"
-                        onClick={() => processMove(2)}
-                    >
-                        ►
-                    </button>
-                </div>
-                <div className="controls-row">
-                    <button
-                        className="control-button"
                         onClick={() => processMove(3)}
                     >
                         ▼
+                    </button>
+                    <button
+                        className="control-button"
+                        onClick={() => processMove(2)}
+                    >
+                        ►
                     </button>
                 </div>
             </div>

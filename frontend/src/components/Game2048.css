@@ -237,3 +237,54 @@
     background-color: #9f8b77;
   }
 }
+
+/*
+  ========================================
+  ✨ استایل جدید برای نمایش امتیازها
+  ========================================
+*/
+.score-box {
+  background-color: #bbada0;
+  padding: 8px 16px;
+  border-radius: 4px;
+  color: white;
+  font-weight: bold;
+  font-size: 1.5rem; /* کمی بزرگتر کردن عدد امتیاز */
+  min-width: 80px;
+  text-align: center;
+  display: flex;
+  flex-direction: column; /* چیدن لیبل و عدد روی هم */
+}
+
+.score-label {
+  font-size: 0.8rem;
+  font-weight: normal;
+  color: #eee4da; /* کمی روشن‌تر برای خوانایی */
+  margin-bottom: 2px;
+}
+
+/* تغییر نام کلاس دکمه‌ها برای خوانایی بهتر */
+.game-button {
+  background: #8f7a66;
+  color: #f9f6f2;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.2s;
+  font-size: clamp(0.9rem, 3vw, 1rem);
+}
+
+.game-button:hover {
+  background: #9f8b77;
+}
+
+/* برای هماهنگی، نام کلاس score-container را به score-box تغییر دادیم */
+/* و استایل best-container حذف شد چون از score-box استفاده می‌کند */
+
+/* استایل قبلی scores-container را هم به‌روز می‌کنیم */
+.scores-container {
+  display: flex;
+  gap: 8px;
+}

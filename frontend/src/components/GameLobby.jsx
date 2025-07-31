@@ -1,60 +1,67 @@
 import React, { useState, useEffect } from "react";
 import DefaultAvatar from "../assets/default-avatar.png";
-const api = {
-    get: (url) =>
-        fetch(url, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-        }).then((res) => res.json()),
-};
 
-const GameLobby = ({ onGameStart, userData, onLogout, onImageError }) => {
-    // State to store the list of active events fetched from the server
+// آیکون برای دکمه لیدربورد
+const LeaderboardIcon = () => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+    >
+        <path
+            fillRule="evenodd"
+            d="M10 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zM4 10a1 1 0 011-1h2a1 1 0 110 2H5a1 1 0 01-1-1zm12 0a1 1 0 00-1 1v2a1 1 0 102 0v-2a1 1 0 00-1-1zM13 6a1 1 0 100 2h2a1 1 0 100-2h-2z"
+            clipRule="evenodd"
+        />
+    </svg>
+);
+
+const GameLobby = ({
+    onGameStart,
+    onShowLeaderboard,
+    userData,
+    onLogout,
+    onImageError,
+}) => {
     const [events, setEvents] = useState([]);
-    // State to track if the data is being loaded
     const [isLoading, setIsLoading] = useState(true);
 
-    // useEffect hook to fetch events when the component mounts
     useEffect(() => {
         const fetchEvents = async () => {
             try {
                 setIsLoading(true);
-                // Fetch the list of active events from the new API endpoint
-                const response = await api.get("/api/events");
+                const response = await fetch("/api/events", {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem(
+                            "jwtToken"
+                        )}`,
+                    },
+                }).then((res) => res.json());
                 if (response.status === "success") {
                     setEvents(response.events);
                 }
             } catch (error) {
                 console.error("Failed to fetch events:", error);
-                // Handle error, maybe show a message to the user
             } finally {
                 setIsLoading(false);
             }
         };
-
         fetchEvents();
-    }, []); // The empty dependency array ensures this runs only once
-
-    // This function will be called when the user clicks any start button
-    const handleStartGame = (eventId) => {
-        // Call the onGameStart function passed from the parent component (App.js)
-        // It will handle the actual API call to /api/start
-        onGameStart(eventId);
-    };
+    }, []);
 
     if (isLoading) {
         return (
-            <div className="w-full max-w-md mx-auto text-center p-6">
-                <p className="text-white text-lg">Loading Events...</p>
+            <div className="text-white text-lg animate-pulse">
+                Loading Game Modes...
             </div>
         );
     }
 
     return (
-        <div className="w-full max-w-md mx-auto bg-gray-800 bg-opacity-70 rounded-xl shadow-lg p-6 text-white animate-fade-in">
+        <div className="w-full max-w-md mx-auto bg-slate-800/50 backdrop-blur-xl rounded-2xl shadow-2xl p-6 text-white animate-fade-in border border-slate-700">
             {userData && (
-                <div className="flex items-center gap-3 bg-white/10 p-2 rounded-lg mb-6">
+                <div className="flex items-center gap-4 bg-black/20 p-3 rounded-xl mb-8">
                     <img
                         src={
                             userData.photo_url
@@ -64,84 +71,92 @@ const GameLobby = ({ onGameStart, userData, onLogout, onImageError }) => {
                                 : DefaultAvatar
                         }
                         alt="Profile"
-                        className="w-12 h-12 rounded-full border-2 border-gray-500"
+                        className="w-14 h-14 rounded-full border-2 border-indigo-400"
                         onError={onImageError}
                     />
                     <div className="flex-grow">
-                        <h2 className="font-bold text-lg leading-tight">
+                        <h2 className="font-bold text-xl leading-tight text-white">
                             {userData.first_name} {userData.last_name}
                         </h2>
-                        <p className="text-sm opacity-80">
+                        <p className="text-sm opacity-70">
                             @{userData.username}
                         </p>
                     </div>
-                    <button
-                        onClick={onLogout}
-                        className="ml-auto text-xs bg-red-500/50 px-3 py-1.5 rounded-md hover:bg-red-500/80 transition-colors"
-                        title="Logout"
-                    >
-                        Logout
-                    </button>
+                    {onLogout && (
+                        <button
+                            onClick={onLogout}
+                            className="ml-auto text-xs bg-red-600/70 px-3 py-1.5 rounded-md hover:bg-red-600/90 transition-colors"
+                            title="Logout"
+                        >
+                            Logout
+                        </button>
+                    )}
                 </div>
             )}
 
-            <h1 className="text-3xl font-bold mb-6 text-center text-yellow-400">
-                Game Mode
+            <h1 className="text-3xl font-bold mb-6 text-center text-white">
+                Select Mode
             </h1>
 
-            <div className="bg-gray-700 bg-opacity-50 rounded-lg p-4 my-3 transition-transform transform hover:scale-105">
-                <h2 className="text-xl font-bold text-white">Free Play</h2>
-                <p className="text-sm text-gray-300 mt-1 mb-3">
+            {/* کارت بازی آزاد */}
+            <div className="bg-black/20 rounded-xl p-5 my-4 border border-slate-700 transition-all transform hover:scale-[1.02] hover:border-blue-500">
+                <h2 className="text-xl font-bold text-blue-400">Free Play</h2>
+                <p className="text-sm text-slate-300 mt-1 mb-4">
                     Practice and play just for fun.
                 </p>
-                <button
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-                    onClick={() => handleStartGame(null)} // eventId is null for free play
-                >
-                    Start
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        className="flex-grow bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all shadow-lg"
+                        onClick={() => onGameStart(null)}
+                    >
+                        Play
+                    </button>
+                    <button
+                        className="p-3 bg-slate-700/80 hover:bg-slate-600 rounded-lg transition-colors"
+                        onClick={() => onShowLeaderboard(null)}
+                        title="View Leaderboard"
+                    >
+                        <LeaderboardIcon />
+                    </button>
+                </div>
             </div>
 
-            {events.length > 0 ? (
-                // If there ARE active events, show them
-                <>
-                    <div className="relative flex py-3 items-center">
-                        <div className="flex-grow border-t border-gray-600"></div>
-                        <span className="flex-shrink mx-4 text-gray-400">
-                            Events
-                        </span>
-                        <div className="flex-grow border-t border-gray-600"></div>
-                    </div>
-
-                    {events.map((event) => (
-                        <div
-                            key={event.id}
-                            className="bg-gray-700 bg-opacity-50 rounded-lg p-4 my-3 transition-transform transform hover:scale-105"
+            {/* کارت‌های ایونت‌ها */}
+            {events.map((event) => (
+                <div
+                    key={event.id}
+                    className="bg-black/20 rounded-xl p-5 my-4 border border-slate-700 transition-all transform hover:scale-[1.02] hover:border-green-500"
+                >
+                    <h2 className="text-xl font-bold text-green-400">
+                        {event.name}
+                    </h2>
+                    <p className="text-sm text-slate-300 mt-1 mb-4">
+                        {event.description}
+                    </p>
+                    <div className="flex items-center gap-3">
+                        <button
+                            className="flex-grow bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-4 rounded-lg transition-all shadow-lg"
+                            onClick={() => onGameStart(event.id)}
                         >
-                            <h2 className="text-xl font-bold text-yellow-400">
-                                {event.name}
-                            </h2>
-                            <p className="text-sm text-gray-300 mt-1 mb-3">
-                                {event.description}
-                            </p>
-                            <button
-                                className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-                                onClick={() => handleStartGame(event.id)}
-                            >
-                                Join Event
-                            </button>
-                        </div>
-                    ))}
-                </>
-            ) : (
-                // If there are NO active events, show a disabled-looking card
-                <div className="bg-gray-900 bg-opacity-70 rounded-lg p-4 my-3 cursor-not-allowed">
-                    <h2 className="text-xl font-bold text-gray-500">
+                            Join Event
+                        </button>
+                        <button
+                            className="p-3 bg-slate-700/80 hover:bg-slate-600 rounded-lg transition-colors"
+                            onClick={() => onShowLeaderboard(event.id)}
+                            title="View Leaderboard"
+                        >
+                            <LeaderboardIcon />
+                        </button>
+                    </div>
+                </div>
+            ))}
+            {events.length === 0 && !isLoading && (
+                <div className="bg-black/20 rounded-xl p-5 my-4 border border-slate-700 cursor-not-allowed opacity-60">
+                    <h2 className="text-xl font-bold text-slate-500">
                         No Active Tournaments
                     </h2>
-                    <p className="text-sm text-gray-400 mt-1">
-                        Check back later for new events! You can still play in
-                        Free Play mode.
+                    <p className="text-sm text-slate-400 mt-1">
+                        Check back later for new events!
                     </p>
                 </div>
             )}
