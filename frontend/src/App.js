@@ -24,26 +24,34 @@ function App() {
     const [currentGameEventId, setCurrentGameEventId] = useState(null);
     const [finalScore, setFinalScore] = useState(null);
 
-    const handleGameOver = useCallback(async (score) => {
-        console.log(`[App.js] Game Over. Score: ${score}`);
-        setFinalScore(score);
-        if (score > 0 && token) {
-            try {
-                await fetch(`${API_BASE}/gameOver`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-                    body: JSON.stringify({ score, eventId: currentGameEventId }),
-                });
-            } catch (err) {
-                setError("Failed to save score");
+    const handleGameOver = useCallback(
+        async (score) => {
+            console.log(`[App.js] Game Over. Score: ${score}`);
+            setFinalScore(score);
+            if (score > 0 && token) {
+                try {
+                    await fetch(`${API_BASE}/gameOver`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({
+                            score,
+                            eventId: currentGameEventId,
+                        }),
+                    });
+                } catch (err) {
+                    setError("Failed to save score");
+                }
             }
-        }
-        setTimeout(() => {
-            setView("board");
-            setLeaderboardKey(Date.now());
-        }, 2000);
-    }, [token, currentGameEventId]);
-
+            setTimeout(() => {
+                setView("board");
+                setLeaderboardKey(Date.now());
+            }, 2000);
+        },
+        [token, currentGameEventId]
+    );
 
     const startGame = useCallback(
         (eventId) => {
@@ -61,7 +69,6 @@ function App() {
         },
         [isAuthenticated, token]
     );
-
 
     const authenticateUser = useCallback(async () => {
         setAuthLoading(true);
@@ -103,7 +110,10 @@ function App() {
             tg.expand(); // برنامه را تمام صفحه می‌کنیم
 
             // اگر داده‌های کاربر از قبل در localStorage وجود دارد، مستقیم به لابی برو
-            if (localStorage.getItem("jwtToken") && localStorage.getItem("userData")) {
+            if (
+                localStorage.getItem("jwtToken") &&
+                localStorage.getItem("userData")
+            ) {
                 setIsAuthenticated(true);
                 setView("lobby");
                 setAuthLoading(false);
@@ -118,14 +128,15 @@ function App() {
                 setAuthLoading(false);
             }
         } else {
-             // اگر آبجکت تلگرام کلا وجود نداشت (محیط تست)
-             console.warn("Running in non-Telegram environment (object not found).");
-             setIsAuthenticated(true);
-             setView("lobby");
-             setAuthLoading(false);
+            // اگر آبجکت تلگرام کلا وجود نداشت (محیط تست)
+            console.warn(
+                "Running in non-Telegram environment (object not found)."
+            );
+            setIsAuthenticated(true);
+            setView("lobby");
+            setAuthLoading(false);
         }
     }, [authenticateUser]);
-
 
     const handleLogout = useCallback(() => {
         localStorage.removeItem("jwtToken");
@@ -210,8 +221,6 @@ function App() {
         () =>
             view === "game" && (
                 <div className="flex flex-col items-center gap-6 w-full max-w-md text-center">
-                    <h1 className="text-3xl font-bold">2048 Game</h1>
-                    {/* ✨ پاس دادن تابع handleGameOver به کامپوننت بازی */}
                     <Game2048 onGameOver={handleGameOver} />
                 </div>
             ),
