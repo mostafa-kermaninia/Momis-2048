@@ -1,16 +1,22 @@
 import React, { useState, useEffect, useCallback } from "react";
 import "./Game2048.css";
 
-// ... (تمام توابع کمکی بازی مثل createEmptyGrid, move و... بدون هیچ تغییری باقی می‌مانند)
+// ✨ مرحله ۱: localStorageManager را هوشمند می‌کنیم
 const localStorageManager = {
-    getBestScore: () =>
-        parseInt(window.localStorage.getItem("bestScore") || "0", 10),
-    setBestScore: (score) => window.localStorage.setItem("bestScore", score),
+    getBestScore: (eventId) => {
+        // برای هر حالت بازی، یک کلید جداگانه می‌سازیم
+        const key = eventId ? `bestScore_${eventId}` : "bestScore_freeplay";
+        return parseInt(window.localStorage.getItem(key) || "0", 10);
+    },
+    setBestScore: (score, eventId) => {
+        const key = eventId ? `bestScore_${eventId}` : "bestScore_freeplay";
+        window.localStorage.setItem(key, score);
+    },
 };
 
+// ... (تمام توابع کمکی بازی مثل createEmptyGrid, move و... بدون هیچ تغییری باقی می‌مانند)
 const createEmptyGrid = () =>
     Array.from({ length: 4 }, () => Array(4).fill(null));
-
 const getRandomAvailableCell = (grid) => {
     const availableCells = [];
     for (let y = 0; y < 4; y++) {
@@ -27,7 +33,6 @@ const getRandomAvailableCell = (grid) => {
     }
     return null;
 };
-
 const addRandomTile = (grid) => {
     const newGrid = grid.map((row) => [...row]);
     const cell = getRandomAvailableCell(newGrid);
@@ -41,7 +46,6 @@ const addRandomTile = (grid) => {
     }
     return newGrid;
 };
-
 const movesAvailable = (grid) => {
     for (let y = 0; y < 4; y++) {
         for (let x = 0; x < 4; x++) {
@@ -53,14 +57,12 @@ const movesAvailable = (grid) => {
     }
     return false;
 };
-
 const slide = (row) => {
     const arr = row.filter((val) => val);
     const missing = 4 - arr.length;
     const zeros = Array(missing).fill(null);
     return arr.concat(zeros);
 };
-
 const combine = (row) => {
     let scoreToAdd = 0;
     for (let i = 0; i < 3; i++) {
@@ -72,7 +74,6 @@ const combine = (row) => {
     }
     return { newRow: row, score: scoreToAdd };
 };
-
 const transposeGrid = (grid) => {
     const newGrid = createEmptyGrid();
     for (let y = 0; y < 4; y++) {
@@ -82,7 +83,6 @@ const transposeGrid = (grid) => {
     }
     return newGrid;
 };
-
 const move = (grid, direction) => {
     let currentGrid = grid.map((row) =>
         row.map((cell) =>
@@ -91,48 +91,43 @@ const move = (grid, direction) => {
     );
     let score = 0;
     let moved = false;
-
     const isHorizontal = direction === 0 || direction === 2;
     const isReversed = direction === 2 || direction === 3;
-
     if (!isHorizontal) currentGrid = transposeGrid(currentGrid);
-
     for (let y = 0; y < 4; y++) {
         const originalRow = [...currentGrid[y]];
         let row = [...originalRow];
         if (isReversed) row.reverse();
-
         const slidRow = slide(row);
         const { newRow, score: newScore } = combine(slidRow);
         let finalRow = slide(newRow);
-
         score += newScore;
-
         if (isReversed) finalRow.reverse();
         currentGrid[y] = finalRow;
-
         for (let x = 0; x < 4; x++) {
             if (originalRow[x]?.value !== finalRow[x]?.value) {
                 moved = true;
             }
         }
     }
-
     if (!isHorizontal) currentGrid = transposeGrid(currentGrid);
-
     return { newGrid: currentGrid, score, moved };
 };
 
-// کامپوننت اصلی بازی
-const Game2048 = ({ onGameOver, onGoHome }) => {
+// ✨ مرحله ۲: eventId را به عنوان prop دریافت می‌کنیم
+const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
     const [grid, setGrid] = useState(createEmptyGrid());
     const [score, setScore] = useState(0);
-    const [bestScore, setBestScore] = useState(
-        localStorageManager.getBestScore()
+    // ✨ مرحله ۳: بهترین امتیاز را بر اساس eventId از حافظه می‌خوانیم
+    const [bestScore, setBestScore] = useState(() =>
+        localStorageManager.getBestScore(eventId)
     );
     const [isGameOver, setGameOver] = useState(false);
 
-    // ✨ تمام کدهای مربوط به لمس حذف شده است.
+    // ✨ مرحله ۴: یک useEffect اضافه می‌کنیم تا با تغییر eventId، بهترین امتیاز هم آپدیت شود
+    useEffect(() => {
+        setBestScore(localStorageManager.getBestScore(eventId));
+    }, [eventId]);
 
     const setupGame = useCallback(() => {
         let newGrid = addRandomTile(createEmptyGrid());
@@ -149,19 +144,18 @@ const Game2048 = ({ onGameOver, onGoHome }) => {
     const processMove = useCallback(
         (direction) => {
             if (isGameOver) return;
-
             const { newGrid, score: newScore, moved } = move(grid, direction);
 
             if (moved) {
                 const gridWithNewTile = addRandomTile(newGrid);
                 setGrid(gridWithNewTile);
-
                 const updatedScore = score + newScore;
                 setScore(updatedScore);
 
                 if (updatedScore > bestScore) {
                     setBestScore(updatedScore);
-                    localStorageManager.setBestScore(updatedScore);
+                    // ✨ مرحله ۵: بهترین امتیاز را با eventId مخصوص خودش ذخیره می‌کنیم
+                    localStorageManager.setBestScore(updatedScore, eventId);
                 }
 
                 if (!movesAvailable(gridWithNewTile)) {
@@ -170,8 +164,8 @@ const Game2048 = ({ onGameOver, onGoHome }) => {
                 }
             }
         },
-        [grid, score, bestScore, isGameOver, onGameOver]
-    );
+        [grid, score, bestScore, isGameOver, onGameOver, eventId]
+    ); // ✨ eventId به وابستگی‌ها اضافه شد
 
     const handleKeyDown = useCallback(
         (e) => {
@@ -216,7 +210,6 @@ const Game2048 = ({ onGameOver, onGoHome }) => {
             <div className="game-header">
                 <h1 className="title">MOMIS 2048</h1>
                 <div className="scores-container">
-                    {/* ✨ مرحله ۲: افزودن لیبل به امتیازها */}
                     <div className="score-box">
                         <span className="score-label">SCORE</span>
                         {score}
@@ -231,12 +224,10 @@ const Game2048 = ({ onGameOver, onGoHome }) => {
                 <a className="game-button" onClick={setupGame}>
                     New Game
                 </a>
-                {/* ✨ مرحله ۱: اتصال دکمه Home به تابع onGoHome */}
                 <a className="game-button" onClick={onGoHome}>
                     Home
                 </a>
             </div>
-
             <div className="game-container">
                 {isGameOver && (
                     <div className="game-message">
@@ -261,7 +252,6 @@ const Game2048 = ({ onGameOver, onGoHome }) => {
                     ))}
                 </div>
             </div>
-
             <div className="controls-container">
                 <div className="controls-row">
                     <button
