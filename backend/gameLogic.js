@@ -56,7 +56,6 @@ const move = (g, d) => {
     return { newGrid: G, score: s, moved: m };
 };
 
-
 function simulateGameAndGetScore(gameScenario) {
     const { moves, initialTiles, newTiles: moveTiles } = gameScenario;
     const allTiles = [...(initialTiles || []), ...(moveTiles || [])].filter(
@@ -100,6 +99,13 @@ function simulateGameAndGetScore(gameScenario) {
         if (direction === undefined) continue;
 
         const { newGrid, score } = move(grid, direction);
+
+        grid.forEach((row) => {
+            console.log(
+                row.map((cell) => (cell ? cell.value : "-")).join("\t")
+            );
+        });
+        console.log("--------------------------");
 
         // ✨ این مهم‌ترین لاگ است ✨
         console.log(
