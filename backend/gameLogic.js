@@ -62,16 +62,14 @@ const move = (grid, direction) => {
 // ✨ تابع کمکی برای چاپ کردن grid در کنسول
 const printGrid = (grid) => {
     console.log("--------------------");
-    grid.forEach(row => {
-        console.log(row.map(cell => cell ? cell.value : 0).join('\t'));
+    grid.forEach((row) => {
+        console.log(row.map((cell) => (cell ? cell.value : 0)).join("\t"));
     });
     console.log("--------------------");
 };
 
 function simulateGameAndGetScore(gameScenario) {
-    // ✨ مرحله ۱: ترکیب کاشی‌های اولیه و کاشی‌های بعد از حرکت
     const { moves, initialTiles, newTiles: moveTiles } = gameScenario;
-    // تمام کاشی‌ها را در یک آرایه قرار داده و مقادیر null را حذف می‌کنیم
     const allTiles = [...(initialTiles || []), ...(moveTiles || [])].filter(
         Boolean
     );
@@ -81,11 +79,15 @@ function simulateGameAndGetScore(gameScenario) {
     let tileIndex = 0;
     const directionMap = { left: 0, up: 1, right: 2, down: 3 };
 
-    // مرحله ۲: قرار دادن دو کاشی اولیه بر اساس سناریوی واقعی
+    console.log("\n\n====== SIMULATION STARTED ======");
+    console.log(
+        `Total moves to process: ${moves.length}, Total tiles provided: ${allTiles.length}`
+    );
+
+    // مرحله ۱: قرار دادن دو کاشی اولیه
     for (let i = 0; i < 2; i++) {
         if (tileIndex < allTiles.length) {
             const tile = allTiles[tileIndex];
-            // این شرط از کرش جلوگیری می‌کند اگر داده خراب باشد
             if (tile && tile.position) {
                 grid[tile.position.y][tile.position.x] = { value: tile.value };
             }
@@ -93,15 +95,29 @@ function simulateGameAndGetScore(gameScenario) {
         }
     }
 
-    // مرحله ۳: اجرای حرکات و اضافه کردن کاشی‌های جدید بر اساس سناریو
-    for (const moveString of moves) {
+    console.log("INITIAL GRID:");
+    printGridForDebug(grid);
+
+    // مرحله ۲: اجرای حرکات
+    for (let i = 0; i < moves.length; i++) {
+        const moveString = moves[i];
+        console.log(`\nProcessing Move #${i + 1}: '${moveString}'`);
+
         const direction = directionMap[moveString];
-        if (direction === undefined) continue;
+        if (direction === undefined) {
+            console.log("--> Invalid move string, skipping.");
+            continue;
+        }
 
         const { newGrid, score } = move(grid, direction);
+
+        // ✨ لاگ کلیدی: امتیازی که از هر حرکت به دست می آید را چاپ می‌کنیم
+        console.log(`--> Score from this move: ${score}`);
+
         totalScore += score;
         grid = newGrid;
 
+        // اضافه کردن کاشی جدید بعدی
         if (tileIndex < allTiles.length) {
             const tile = allTiles[tileIndex];
             if (
@@ -114,6 +130,9 @@ function simulateGameAndGetScore(gameScenario) {
             tileIndex++;
         }
     }
+
+    console.log(`\n====== SIMULATION FINISHED =====`);
+    console.log(`FINAL CALCULATED SCORE: ${totalScore}`); // ✨ لاگ کلیدی
     return totalScore;
 }
 
