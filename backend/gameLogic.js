@@ -81,10 +81,10 @@ function simulateGameAndGetScore(gameScenario) {
 
     console.log("\n\n====== SIMULATION STARTED ======");
     console.log(
-        `Total moves to process: ${moves.length}, Total tiles provided: ${allTiles.length}`
+        `Total moves: ${moves.length}, Total tiles: ${allTiles.length}`
     );
 
-    // مرحله ۱: قرار دادن دو کاشی اولیه
+    // مرحله ۱: قرار دادن کاشی‌های اولیه
     for (let i = 0; i < 2; i++) {
         if (tileIndex < allTiles.length) {
             const tile = allTiles[tileIndex];
@@ -95,29 +95,31 @@ function simulateGameAndGetScore(gameScenario) {
         }
     }
 
-    console.log("INITIAL GRID:");
-    printGridForDebug(grid);
+    console.log("--- Initial Grid State ---");
+    grid.forEach((row) => {
+        console.log(row.map((cell) => (cell ? cell.value : "-")).join("\t"));
+    });
+    console.log("--------------------------");
 
     // مرحله ۲: اجرای حرکات
     for (let i = 0; i < moves.length; i++) {
         const moveString = moves[i];
-        console.log(`\nProcessing Move #${i + 1}: '${moveString}'`);
-
         const direction = directionMap[moveString];
-        if (direction === undefined) {
-            console.log("--> Invalid move string, skipping.");
-            continue;
-        }
+
+        console.log(`\n[Move #${i + 1}/${moves.length}: '${moveString}']`);
+
+        if (direction === undefined) continue;
 
         const { newGrid, score } = move(grid, direction);
 
-        // ✨ لاگ کلیدی: امتیازی که از هر حرکت به دست می آید را چاپ می‌کنیم
-        console.log(`--> Score from this move: ${score}`);
+        // ✨ این مهم‌ترین لاگ است ✨
+        console.log(
+            `--> Score from this move: ${score}. Total score before adding: ${totalScore}`
+        );
 
         totalScore += score;
         grid = newGrid;
 
-        // اضافه کردن کاشی جدید بعدی
         if (tileIndex < allTiles.length) {
             const tile = allTiles[tileIndex];
             if (
@@ -131,8 +133,8 @@ function simulateGameAndGetScore(gameScenario) {
         }
     }
 
-    console.log(`\n====== SIMULATION FINISHED =====`);
-    console.log(`FINAL CALCULATED SCORE: ${totalScore}`); // ✨ لاگ کلیدی
+    console.log("\n====== SIMULATION FINISHED ======");
+    console.log(`FINAL CALCULATED SCORE: ${totalScore}`);
     return totalScore;
 }
 
