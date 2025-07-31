@@ -59,14 +59,17 @@ const move = (grid, direction) => {
     return { newGrid: currentGrid, score };
 };
 
-/**
- * ✅ شبیه‌ساز امن و جدید بازی در سرور.
- * @param {object} gameScenario - آبجکتی شامل حرکات و کاشی‌های جدید.
- */
+// ✨ تابع کمکی برای چاپ کردن grid در کنسول
+const printGrid = (grid) => {
+    console.log("--------------------");
+    grid.forEach((row) => {
+        console.log(row.map((cell) => (cell ? cell.value : 0)).join("\t"));
+    });
+    console.log("--------------------");
+};
+
 function simulateGameAndGetScore(gameScenario) {
-    // ✨ مرحله ۱: ترکیب کاشی‌های اولیه و کاشی‌های بعد از حرکت
     const { moves, initialTiles, newTiles: moveTiles } = gameScenario;
-    // تمام کاشی‌ها را در یک آرایه قرار داده و مقادیر null را حذف می‌کنیم
     const allTiles = [...(initialTiles || []), ...(moveTiles || [])].filter(
         Boolean
     );
@@ -76,11 +79,12 @@ function simulateGameAndGetScore(gameScenario) {
     let tileIndex = 0;
     const directionMap = { left: 0, up: 1, right: 2, down: 3 };
 
-    // مرحله ۲: قرار دادن دو کاشی اولیه بر اساس سناریوی واقعی
+    console.log("====== STARTING SIMULATION ======");
+
+    // قرار دادن دو کاشی اولیه
     for (let i = 0; i < 2; i++) {
         if (tileIndex < allTiles.length) {
             const tile = allTiles[tileIndex];
-            // این شرط از کرش جلوگیری می‌کند اگر داده خراب باشد
             if (tile && tile.position) {
                 grid[tile.position.y][tile.position.x] = { value: tile.value };
             }
@@ -88,13 +92,24 @@ function simulateGameAndGetScore(gameScenario) {
         }
     }
 
-    // مرحله ۳: اجرای حرکات و اضافه کردن کاشی‌های جدید بر اساس سناریو
-    for (const moveString of moves) {
+    console.log("Initial Grid:");
+    printGrid(grid);
+
+    // اجرای حرکات
+    for (let i = 0; i < moves.length; i++) {
+        const moveString = moves[i];
         const direction = directionMap[moveString];
         if (direction === undefined) continue;
 
+        console.log(`\n[Move #${i + 1}: '${moveString}']`);
+
         const { newGrid, score } = move(grid, direction);
         totalScore += score;
+
+        console.log(
+            `Score from this move: ${score}, Total score: ${totalScore}`
+        );
+
         grid = newGrid;
 
         if (tileIndex < allTiles.length) {
@@ -105,10 +120,23 @@ function simulateGameAndGetScore(gameScenario) {
                 grid[tile.position.y][tile.position.x] === null
             ) {
                 grid[tile.position.y][tile.position.x] = { value: tile.value };
+                console.log(
+                    `Added new tile ${tile.value} at (${tile.position.x}, ${tile.position.y})`
+                );
+            } else if (tile) {
+                console.error(
+                    `!!! FAILED to add tile ${tile.value} at (${tile.position.x}, ${tile.position.y}) - cell not empty!`
+                );
             }
             tileIndex++;
         }
+        console.log(`Grid state after move #${i + 1}:`);
+        printGrid(grid);
     }
+
+    console.log(
+        `====== SIMULATION FINISHED. FINAL SCORE: ${totalScore} ======`
+    );
     return totalScore;
 }
 
