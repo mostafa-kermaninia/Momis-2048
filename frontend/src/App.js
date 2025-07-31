@@ -31,20 +31,19 @@ function App() {
     }, []);
 
     const handleGameOver = useCallback(
-        async (score, moveHistory) => {
-            // ✨ مرحله ۱: moveHistory را به عنوان ورودی دوم دریافت می‌کنیم
+        async (score, scenario) => {
+            // نام متغیر به scenario تغییر کرد
             console.log(
-                `[App.js] Game Over. Final Score: ${score}. Moves: ${moveHistory.length}`
+                `[App.js] Game Over. Final Score: ${score}. Sending scenario with ${scenario.moves.length} moves.`
             );
-            setFinalScore(score); // امتیاز را برای نمایش در لیدربورد نگه می‌داریم
+            setFinalScore(score);
 
             if (token) {
                 try {
-                    // ✨ مرحله ۲: آبجکت ارسالی به سرور را اصلاح می‌کنیم
                     const body = {
-                        moveHistory: moveHistory, // <--- ارسال تاریخچه حرکات
+                        gameScenario: scenario, // <--- ارسال کل سناریو
                         eventId: currentGameEventId,
-                        finalScore: score, // این فیلد را برای لاگ‌گیری در سرور می‌فرستیم
+                        finalScore: score, // برای لاگ‌گیری در سرور
                     };
 
                     await fetch(`${API_BASE}/gameOver`, {
@@ -53,7 +52,7 @@ function App() {
                             "Content-Type": "application/json",
                             Authorization: `Bearer ${token}`,
                         },
-                        body: JSON.stringify(body), // ✨ ارسال body جدید
+                        body: JSON.stringify(body),
                     });
                 } catch (err) {
                     console.error("Failed to save score:", err);
@@ -61,7 +60,6 @@ function App() {
                 }
             }
 
-            // انتقال به صفحه لیدربورد مثل قبل انجام می‌شود
             setTimeout(() => {
                 setView("board");
                 setLeaderboardKey(Date.now());

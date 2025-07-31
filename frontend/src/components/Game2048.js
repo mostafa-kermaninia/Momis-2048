@@ -148,28 +148,27 @@ const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
         setupGame();
     }, [setupGame]);
 
-    const processMove = useCallback(
+const processMove = useCallback(
         (direction) => {
             if (isGameOver) return;
             const { newGrid, score: newScore, moved } = move(grid, direction);
 
             if (moved) {
-                const { grid: gridWithNewTile, newTile } =
-                    addRandomTile(newGrid);
+                const { grid: gridWithNewTile, newTile } = addRandomTile(newGrid);
+                
+                const directionMap = { 0: "left", 1: "up", 2: "right", 3: "down" };
+                const moveName = directionMap[direction];
 
-                // ✨ مرحله ۳: ثبت حرکت و کاشی جدید در سناریو
-                const directionMap = {
-                    0: "left",
-                    1: "up",
-                    2: "right",
-                    3: "down",
+                // ✨ راه‌حل اصلی: ساختن سناریوی جدید به صورت دستی
+                const updatedScenario = {
+                    ...gameScenario,
+                    moves: [...gameScenario.moves, moveName],
+                    newTiles: [...gameScenario.newTiles, newTile],
                 };
-                setGameScenario((prev) => ({
-                    ...prev,
-                    moves: [...prev.moves, directionMap[direction]],
-                    newTiles: [...prev.newTiles, newTile],
-                }));
-
+                
+                // حالا state را با سناریوی جدید آپدیت می‌کنیم
+                setGameScenario(updatedScenario);
+                
                 setGrid(gridWithNewTile);
                 const updatedScore = score + newScore;
                 setScore(updatedScore);
@@ -181,8 +180,8 @@ const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
 
                 if (!movesAvailable(gridWithNewTile)) {
                     setGameOver(true);
-                    // ✨ مرحله ۴: ارسال کل سناریوی بازی به App.js
-                    onGameOver(updatedScore, gameScenario);
+                    // ✨ و سناریوی آپدیت‌شده را مستقیماً به onGameOver پاس می‌دهیم
+                    onGameOver(updatedScore, updatedScenario);
                 }
             }
         },
