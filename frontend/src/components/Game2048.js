@@ -107,6 +107,7 @@ const move = (g, d) => {
     return { newGrid: G, score: s, moved: m };
 };
 
+
 const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
     const [grid, setGrid] = useState(createEmptyGrid());
     const [score, setScore] = useState(0);
