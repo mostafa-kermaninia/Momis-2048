@@ -44,7 +44,7 @@ const authenticateToken = (req, res, next) => {
 
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
         if (err) {
-            logger.warn(`JWT verification failed: ${err.message}`);
+            logger.info(`JWT verification failed: ${err.message}`);
             return res
                 .status(403)
                 .json({ message: "Invalid or expired token" });
@@ -106,23 +106,36 @@ app.post("/api/telegram-auth", async (req, res) => {
 });
 app.post("/api/gameOver", authenticateToken, async (req, res) => {
     // مرحله ۱: به جای امتیاز، تاریخچه حرکات را دریافت می‌کنیم
-    const { moveHistory, eventId, finalScore } = req.body; // finalScore را فقط برای نمایش می‌گیریم
+    const { moveHistory, eventId } = req.body;
     const userId = req.user.userId;
 
     // اعتبار سنجی ورودی
-    if (!Array.isArray(moveHistory) || moveHistory.length === 0) {
-        logger.warn(`Invalid or empty moveHistory received for user ${userId}`);
+    if (!Array.isArray(moveHistory)) {
+        // ✨ مشکل لاگر حل شد: به جای warn از info یا error استفاده می‌کنیم
+        logger.info(
+            `[Security] Invalid data format (moveHistory is not an array) for user ${userId}`
+        );
         return res
             .status(400)
             .json({ status: "error", message: "Invalid game data." });
     }
 
+    if (moveHistory.length < 2) {
+        logger.info(
+            `[Security] Insufficient moves received (${moveHistory.length}) for user ${userId}`
+        );
+        return res
+            .status(400)
+            .json({
+                status: "error",
+                message: "Not enough moves to calculate a valid score.",
+            });
+    }
+
     logger.info(
         `[gameOver] Received ${
             moveHistory.length
-        } moves for user: ${userId} in event: ${
-            eventId || "Free Play"
-        }. Client score: ${finalScore}`
+        } moves for user: ${userId} in event: ${eventId || "Free Play"}`
     );
 
     try {
@@ -130,7 +143,7 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
         const serverCalculatedScore = simulateGameAndGetScore(moveHistory);
 
         logger.info(
-            `[gameOver] Server calculated score: ${serverCalculatedScore} for user: ${userId}`
+            `[gameOver] Server-validated score: ${serverCalculatedScore} for user: ${userId}`
         );
 
         // مرحله ۳: امتیازی که توسط سرور محاسبه شده را در دیتابیس ذخیره می‌کنیم
@@ -149,11 +162,12 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
         res.status(201).json({
             status: "success",
             message: "Score saved successfully.",
-            validatedScore: serverCalculatedScore, // می‌توانید امتیاز تایید شده را برگردانید
+            validatedScore: serverCalculatedScore,
         });
     } catch (error) {
         logger.error(
-            `Failed to save score for user ${userId}: ${error.message}`
+            `Failed to save score for user ${userId}: ${error.message}`,
+            { stack: error.stack }
         );
         res.status(500).json({
             status: "error",
