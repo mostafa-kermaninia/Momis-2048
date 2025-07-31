@@ -61,7 +61,6 @@ const move = (g, d) => {
     return { newGrid: G, score: s, moved: m };
 };
 
-// ✅ تابع شبیه‌ساز نهایی و کاملاً صحیح
 function simulateGameAndGetScore(gameScenario) {
     // از gameScenario فقط `moves` و `newTiles` (که شامل همه کاشی‌هاست) را می‌خوانیم
     const { moves, newTiles } = gameScenario;
@@ -85,8 +84,13 @@ function simulateGameAndGetScore(gameScenario) {
             tileIndex++;
         }
     }
+    console.log("--- Initial Grid State ---");
+    grid.forEach((row) => {
+        console.log(row.map((cell) => (cell ? cell.value : "-")).join("\t"));
+    });
+    console.log("--------------------------");
 
-    // مرحله ۲: اجرای حرکات بر اساس منطق دقیق کلاینت
+    // مرحله ۲: اجرای حرکات
     for (const moveString of moves) {
         const direction = directionMap[moveString];
         if (direction === undefined) continue;
@@ -115,6 +119,9 @@ function simulateGameAndGetScore(gameScenario) {
             }
         }
     }
+
+    console.log("\n====== SIMULATION FINISHED ======");
+    console.log(`FINAL CALCULATED SCORE: ${totalScore}`);
     return totalScore;
 }
 
