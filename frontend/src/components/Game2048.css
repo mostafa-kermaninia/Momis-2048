@@ -190,3 +190,50 @@
     font-weight: bold;
     color: #776e65;
 }
+
+/*
+  ========================================
+  ✨ استایل دکمه‌های کنترلی (جدید)
+  ========================================
+*/
+.controls-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px; /* فاصله از بورد بازی */
+  user-select: none; /* جلوگیری از انتخاب متن دکمه‌ها */
+}
+
+.controls-row {
+  display: flex;
+  gap: 40px; /* فاصله بین دکمه‌های چپ/راست از بالا/پایین */
+  justify-content: center;
+}
+
+.control-button {
+  width: 60px;
+  height: 60px;
+  background-color: #bbada0; /* همرنگ با پس‌زمینه امتیاز */
+  border: none;
+  border-radius: 50%; /* دکمه‌های گرد */
+  color: #f9f6f2; /* رنگ فلش‌ها */
+  font-size: 2rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.control-button:active {
+  background-color: #8f7a66; /* افکت فشرده شدن دکمه */
+}
+
+/* در دستگاه‌هایی که قابلیت hover دارند (مثل دسکتاپ) */
+@media (hover: hover) {
+  .control-button:hover {
+    background-color: #9f8b77;
+  }
+}

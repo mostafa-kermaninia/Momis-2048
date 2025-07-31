@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'; // ✨ useRef اضافه شد
+import React, { useState, useEffect, useCallback } from 'react';
 import './Game2048.css';
 
-// ... (تمام توابع کمکی بازی مثل createEmptyGrid, addRandomTile, move و... بدون تغییر باقی می‌مانند)
+// ... (تمام توابع کمکی بازی مثل createEmptyGrid, move و... بدون هیچ تغییری باقی می‌مانند)
 const localStorageManager = {
   getBestScore: () => parseInt(window.localStorage.getItem('bestScore') || '0', 10),
   setBestScore: (score) => window.localStorage.setItem('bestScore', score),
@@ -119,9 +119,7 @@ const Game2048 = ({ onGameOver }) => {
   const [bestScore, setBestScore] = useState(localStorageManager.getBestScore());
   const [isGameOver, setGameOver] = useState(false);
 
-  // ✨ بخش جدید: State برای ذخیره مختصات شروع لمس
-  const [touchStart, setTouchStart] = useState({ x: 0, y: 0 });
-  const gameContainerRef = useRef(null); // ✨ رفرنس به کانتینر بازی
+  // ✨ تمام کدهای مربوط به لمس حذف شده است.
 
   const setupGame = useCallback(() => {
     let newGrid = addRandomTile(createEmptyGrid());
@@ -135,7 +133,6 @@ const Game2048 = ({ onGameOver }) => {
     setupGame();
   }, [setupGame]);
 
-  // ✨ تابع جدید: پردازش حرکت و پایان بازی
   const processMove = useCallback((direction) => {
     if (isGameOver) return;
     
@@ -160,7 +157,6 @@ const Game2048 = ({ onGameOver }) => {
     }
   }, [grid, score, bestScore, isGameOver, onGameOver]);
 
-  // مدیریت کیبورد
   const handleKeyDown = useCallback((e) => {
     let direction = -1;
     switch (e.key) {
@@ -174,54 +170,19 @@ const Game2048 = ({ onGameOver }) => {
     processMove(direction);
   }, [processMove]);
   
-  // ✨ بخش جدید: توابع مدیریت لمس
-  const handleTouchStart = (e) => {
-    if (e.touches.length > 1) return; // فقط یک انگشت
-    setTouchStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
-  };
-
-  const handleTouchEnd = (e) => {
-    if (e.changedTouches.length > 1) return;
-    const touchEnd = { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
-
-    const dx = touchEnd.x - touchStart.x;
-    const dy = touchEnd.y - touchStart.y;
-    const absDx = Math.abs(dx);
-    const absDy = Math.abs(dy);
-
-    if (Math.max(absDx, absDy) > 30) { // حداقل 30 پیکسل جابجایی
-      // تشخیص جهت اصلی (افقی یا عمودی)
-      const direction = absDx > absDy ? (dx > 0 ? 2 : 0) : (dy > 0 ? 3 : 1);
-      processMove(direction);
-    }
-  };
-
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
-
-    // ✨ اتصال رویدادهای لمسی به کانتینر بازی
-    const gameElement = gameContainerRef.current;
-    if (gameElement) {
-        gameElement.addEventListener('touchstart', handleTouchStart, { passive: true });
-        gameElement.addEventListener('touchend', handleTouchEnd, { passive: true });
-    }
-
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      if (gameElement) {
-        gameElement.removeEventListener('touchstart', handleTouchStart);
-        gameElement.removeEventListener('touchend', handleTouchEnd);
-      }
     };
-  }, [handleKeyDown]); // وابستگی handleKeyDown کافیست چون processMove را در خود دارد
+  }, [handleKeyDown]);
 
   const tiles = grid.flatMap((row, y) => 
     row.map((cell, x) => (cell ? { ...cell, x, y } : null))
   ).filter(Boolean);
 
   return (
-    // ✨ اضافه کردن ref به این div
-    <div className="game-wrapper" ref={gameContainerRef}>
+    <div className="game-wrapper">
       <div className="game-header">
         <h1 className="title">2048</h1>
         <div className="scores-container">
@@ -240,19 +201,27 @@ const Game2048 = ({ onGameOver }) => {
                 <p>Game Over!</p>
             </div>
         )}
-
         <div className="grid-container">
-          {[...Array(16)].map((_, i) => (
-              <div key={i} className="grid-cell" />
-          ))}
+          {[...Array(16)].map((_, i) => ( <div key={i} className="grid-cell" /> ))}
         </div>
-
         <div className="tile-container">
           {tiles.map(tile => (
-              <div key={tile.id} className={`tile tile-${tile.value} tile-position-${tile.x + 1}-${tile.y + 1} ${tile.isNew ? 'tile-new' : ''}`}>
+              <div key={tile.id} className={`tile tile-${tile.value} tile-position-${tile.x + 1}-${tile.y + 1}`}>
                   <div className="tile-inner">{tile.value}</div>
               </div>
           ))}
+        </div>
+      </div>
+
+      {/* ✨ بخش جدید: دکمه‌های کنترلی برای موبایل */}
+      <div className="controls-container">
+        <div className="controls-row">
+            <button className="control-button" onClick={() => processMove(1)}>▲</button>
+        </div>
+        <div className="controls-row">
+            <button className="control-button" onClick={() => processMove(0)}>◄</button>
+            <button className="control-button" onClick={() => processMove(3)}>▼</button>
+            <button className="control-button" onClick={() => processMove(2)}>►</button>
         </div>
       </div>
     </div>
