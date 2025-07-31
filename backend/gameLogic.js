@@ -31,105 +31,90 @@ const transposeGrid = (grid) => {
     }
     return newGrid;
 };
+
 const move = (g, d) => {
-    // در سرور نیازی به isNew و isMerged نداریم، اما ساختار کلی را حفظ می‌کنیم
-    let G = g.map((r) => r.map((c) => (c ? { ...c } : null))),
-        s = 0,
-        m = false; // moved flag
-    const H = d === 0 || d === 2,
-        R = d === 2 || d === 3;
+    let G = g.map((r) =>
+        r.map((c) => (c ? { ...c, isNew: false, isMerged: false } : null))
+    );
+    let s = 0;
+    let m = false; // moved flag
+    const H = d === 0 || d === 2;
+    const R = d === 2 || d === 3;
     if (!H) G = transposeGrid(G);
     for (let y = 0; y < 4; y++) {
         const O = [...G[y]];
         let r = [...O];
         if (R) r.reverse();
-        const S = slide(r),
-            { newRow: N, score: C } = combine(S);
+        const S = slide(r);
+        const { newRow: N, score: C } = combine(S);
         let F = slide(N);
         s += C;
         if (R) F.reverse();
         G[y] = F;
-        // بررسی می‌کنیم که آیا حرکتی انجام شده یا نه
-        for (let x = 0; x < 4; x++) if (O[x]?.value !== F[x]?.value) m = true;
+        for (let x = 0; x < 4; x++) {
+            if (O[x]?.value !== F[x]?.value) {
+                m = true;
+            }
+        }
     }
     if (!H) G = transposeGrid(G);
     return { newGrid: G, score: s, moved: m };
 };
 
+// ✅ تابع شبیه‌ساز نهایی و کاملاً صحیح
 function simulateGameAndGetScore(gameScenario) {
-    const { moves, initialTiles, newTiles: moveTiles } = gameScenario;
-    const allTiles = [...(initialTiles || []), ...(moveTiles || [])].filter(
-        Boolean
-    );
+    // از gameScenario فقط `moves` و `newTiles` (که شامل همه کاشی‌هاست) را می‌خوانیم
+    const { moves, newTiles } = gameScenario;
+    if (!moves || !newTiles) return 0; // بررسی امنیتی
 
     let grid = createEmptyGrid();
     let totalScore = 0;
     let tileIndex = 0;
     const directionMap = { left: 0, up: 1, right: 2, down: 3 };
 
-    console.log("\n\n====== SIMULATION STARTED ======");
-    console.log(
-        `Total moves: ${moves.length}, Total tiles: ${allTiles.length}`
-    );
-
-    // مرحله ۱: قرار دادن کاشی‌های اولیه
+    // مرحله ۱: قرار دادن دو کاشی اولیه
     for (let i = 0; i < 2; i++) {
-        if (tileIndex < allTiles.length) {
-            const tile = allTiles[tileIndex];
+        if (tileIndex < newTiles.length) {
+            const tile = newTiles[tileIndex];
             if (tile && tile.position) {
-                grid[tile.position.y][tile.position.x] = { value: tile.value };
+                grid[tile.position.y][tile.position.x] = {
+                    value: tile.value,
+                    id: Math.random(),
+                };
             }
             tileIndex++;
         }
     }
 
-    console.log("--- Initial Grid State ---");
-    grid.forEach((row) => {
-        console.log(row.map((cell) => (cell ? cell.value : "-")).join("\t"));
-    });
-    console.log("--------------------------");
-
-    // مرحله ۲: اجرای حرکات
-    for (let i = 0; i < moves.length; i++) {
-        const moveString = moves[i];
+    // مرحله ۲: اجرای حرکات بر اساس منطق دقیق کلاینت
+    for (const moveString of moves) {
         const direction = directionMap[moveString];
-
-        console.log(`\n[Move #${i + 1}/${moves.length}: '${moveString}']`);
-
         if (direction === undefined) continue;
 
-        const { newGrid, score } = move(grid, direction);
+        const { newGrid, score, moved } = move(grid, direction);
 
-        grid.forEach((row) => {
-            console.log(
-                row.map((cell) => (cell ? cell.value : "-")).join("\t")
-            );
-        });
-        console.log("--------------------------");
+        // ✨ این شرط حیاتی‌ترین بخش اصلاحات است ✨
+        // فقط در صورتی که حرکتی انجام شده باشد، امتیاز اضافه شده و کاشی جدید قرار می‌گیرد
+        if (moved) {
+            totalScore += score;
+            grid = newGrid;
 
-        // ✨ این مهم‌ترین لاگ است ✨
-        console.log(
-            `--> Score from this move: ${score}. Total score before adding: ${totalScore}`
-        );
-
-        totalScore += score;
-        grid = newGrid;
-
-        if (tileIndex < allTiles.length) {
-            const tile = allTiles[tileIndex];
-            if (
-                tile &&
-                tile.position &&
-                grid[tile.position.y][tile.position.x] === null
-            ) {
-                grid[tile.position.y][tile.position.x] = { value: tile.value };
+            if (tileIndex < newTiles.length) {
+                const tile = newTiles[tileIndex];
+                if (
+                    tile &&
+                    tile.position &&
+                    grid[tile.position.y][tile.position.x] === null
+                ) {
+                    grid[tile.position.y][tile.position.x] = {
+                        value: tile.value,
+                        id: Math.random(),
+                    };
+                }
+                tileIndex++;
             }
-            tileIndex++;
         }
     }
-
-    console.log("\n====== SIMULATION FINISHED ======");
-    console.log(`FINAL CALCULATED SCORE: ${totalScore}`);
     return totalScore;
 }
 
