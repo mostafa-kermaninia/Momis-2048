@@ -1,5 +1,6 @@
 console.log("✅ Server.js file is starting to execute...");
 require("dotenv").config();
+const { simulateGameAndGetScore } = require("./gameLogic"); // مسیر فایل را چک کنید
 
 const express = require("express");
 const cors = require("cors");
@@ -103,41 +104,52 @@ app.post("/api/telegram-auth", async (req, res) => {
         });
     }
 });
-
 app.post("/api/gameOver", authenticateToken, async (req, res) => {
-    const { score, eventId } = req.body;
+    // مرحله ۱: به جای امتیاز، تاریخچه حرکات را دریافت می‌کنیم
+    const { moveHistory, eventId, finalScore } = req.body; // finalScore را فقط برای نمایش می‌گیریم
     const userId = req.user.userId;
 
-    logger.info(
-        `[gameOver] Received score: ${score} for user: ${userId} in event: ${
-            eventId || "Free Play"
-        }`
-    );
-
-    // اعتبار سنجی امتیاز
-    if (typeof score !== "number" || score < 0) {
-        logger.warn(`Invalid score received for user ${userId}: ${score}`);
+    // اعتبار سنجی ورودی
+    if (!Array.isArray(moveHistory) || moveHistory.length === 0) {
+        logger.warn(`Invalid or empty moveHistory received for user ${userId}`);
         return res
             .status(400)
-            .json({ status: "error", message: "Invalid score." });
+            .json({ status: "error", message: "Invalid game data." });
     }
 
+    logger.info(
+        `[gameOver] Received ${
+            moveHistory.length
+        } moves for user: ${userId} in event: ${
+            eventId || "Free Play"
+        }. Client score: ${finalScore}`
+    );
+
     try {
+        // مرحله ۲: بازی را در سرور شبیه‌سازی کرده و امتیاز واقعی را محاسبه می‌کنیم
+        const serverCalculatedScore = simulateGameAndGetScore(moveHistory);
+
+        logger.info(
+            `[gameOver] Server calculated score: ${serverCalculatedScore} for user: ${userId}`
+        );
+
+        // مرحله ۳: امتیازی که توسط سرور محاسبه شده را در دیتابیس ذخیره می‌کنیم
         await Score.create({
-            score: score,
+            score: serverCalculatedScore, // <--- استفاده از امتیاز امن سرور
             userTelegramId: userId,
-            // اگر eventId وجود نداشته باشد، null ذخیره می‌شود (بازی آزاد)
             eventId: eventId || null,
         });
 
         logger.info(
-            `Score ${score} saved for user ${userId} in event ${
+            `Score ${serverCalculatedScore} saved for user ${userId} in event ${
                 eventId || "Free Play"
             }`
         );
+
         res.status(201).json({
             status: "success",
             message: "Score saved successfully.",
+            validatedScore: serverCalculatedScore, // می‌توانید امتیاز تایید شده را برگردانید
         });
     } catch (error) {
         logger.error(
@@ -163,7 +175,10 @@ app.get("/api/leaderboard", authenticateToken, async (req, res) => {
         } else {
             whereCondition.eventId = null;
         }
-        logger.info(`Fetching leaderboard for user ${currentUserTelegramId} with condition:`, whereCondition);
+        logger.info(
+            `Fetching leaderboard for user ${currentUserTelegramId} with condition:`,
+            whereCondition
+        );
 
         // مرحله ۱: بهترین امتیاز *تمام* کاربران را بر اساس شرط پیدا می‌کنیم (بدون limit)
         const allScores = await Score.findAll({
@@ -200,12 +215,13 @@ app.get("/api/leaderboard", authenticateToken, async (req, res) => {
 
         // مرحله ۴: اطلاعات کامل (نام، عکس و...) را برای کاربران مورد نیاز می‌گیریم
         const userIdsToFetch = [
-            ...new Set([ // با Set از ارسال ID تکراری جلوگیری می‌کنیم
+            ...new Set([
+                // با Set از ارسال ID تکراری جلوگیری می‌کنیم
                 ...top5Players.map((p) => p.userTelegramId),
                 ...(currentUserData ? [currentUserData.userTelegramId] : []), // اگر کاربر فعلی رکوردی داشت، ID او را هم اضافه کن
             ]),
         ];
-        
+
         const users = await User.findAll({
             where: { telegramId: userIdsToFetch },
             raw: true,
@@ -229,7 +245,7 @@ app.get("/api/leaderboard", authenticateToken, async (req, res) => {
                 rank: playerData.rank,
             };
         };
-        
+
         // مرحله ۵: ساخت آبجکت نهایی برای ارسال به فرانت‌اند
         res.json({
             status: "success",
@@ -238,7 +254,6 @@ app.get("/api/leaderboard", authenticateToken, async (req, res) => {
                 currentUser: formatPlayer(currentUserData), // اطلاعات کاربر فعلی
             },
         });
-
     } catch (e) {
         logger.error(`Leaderboard error: ${e.message}`, { stack: e.stack });
         res.status(500).json({
@@ -247,8 +262,6 @@ app.get("/api/leaderboard", authenticateToken, async (req, res) => {
         });
     }
 });
-
-
 
 app.get("/api/events", (req, res) => {
     const activeEvents = [];
