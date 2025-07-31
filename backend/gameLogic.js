@@ -62,24 +62,23 @@ const move = (g, d) => {
 };
 
 function simulateGameAndGetScore(gameScenario) {
-    // از gameScenario فقط `moves` و `newTiles` (که شامل همه کاشی‌هاست) را می‌خوانیم
-    const { moves, newTiles } = gameScenario;
-    if (!moves || !newTiles) return 0; // بررسی امنیتی
+    const { moves, initialTiles, newTiles: moveTiles } = gameScenario;
+    if (!moves || !initialTiles || !moveTiles) return 0;
+
+    const allTiles = [...initialTiles, ...moveTiles].filter(Boolean);
 
     let grid = createEmptyGrid();
     let totalScore = 0;
     let tileIndex = 0;
     const directionMap = { left: 0, up: 1, right: 2, down: 3 };
 
-    // مرحله ۱: قرار دادن دو کاشی اولیه
+    // Place the first two tiles
     for (let i = 0; i < 2; i++) {
-        if (tileIndex < newTiles.length) {
-            const tile = newTiles[tileIndex];
-            if (tile && tile.position) {
-                grid[tile.position.y][tile.position.x] = {
-                    value: tile.value,
-                    id: Math.random(),
-                };
+        if (tileIndex < allTiles.length) {
+            const tile = allTiles[tileIndex];
+            // ✨ THE FIX: Read from tile.y and tile.x directly
+            if (tile && tile.y !== undefined && tile.x !== undefined) {
+                grid[tile.y][tile.x] = { value: tile.value, id: Math.random() };
             }
             tileIndex++;
         }
@@ -90,27 +89,27 @@ function simulateGameAndGetScore(gameScenario) {
     });
     console.log("--------------------------");
 
-    // مرحله ۲: اجرای حرکات
+    // Process all moves
     for (const moveString of moves) {
         const direction = directionMap[moveString];
         if (direction === undefined) continue;
 
         const { newGrid, score, moved } = move(grid, direction);
 
-        // ✨ این شرط حیاتی‌ترین بخش اصلاحات است ✨
-        // فقط در صورتی که حرکتی انجام شده باشد، امتیاز اضافه شده و کاشی جدید قرار می‌گیرد
         if (moved) {
             totalScore += score;
             grid = newGrid;
 
-            if (tileIndex < newTiles.length) {
-                const tile = newTiles[tileIndex];
+            if (tileIndex < allTiles.length) {
+                const tile = allTiles[tileIndex];
+                // ✨ THE FIX: Read from tile.y and tile.x directly
                 if (
                     tile &&
-                    tile.position &&
-                    grid[tile.position.y][tile.position.x] === null
+                    tile.y !== undefined &&
+                    tile.x !== undefined &&
+                    grid[tile.y][tile.x] === null
                 ) {
-                    grid[tile.position.y][tile.position.x] = {
+                    grid[tile.y][tile.x] = {
                         value: tile.value,
                         id: Math.random(),
                     };
@@ -119,9 +118,6 @@ function simulateGameAndGetScore(gameScenario) {
             }
         }
     }
-
-    console.log("\n====== SIMULATION FINISHED ======");
-    console.log(`FINAL CALCULATED SCORE: ${totalScore}`);
     return totalScore;
 }
 
