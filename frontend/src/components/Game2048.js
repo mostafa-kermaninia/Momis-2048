@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import "./Game2048.css";
 
+// Helper functions (slide, combine, etc.) remain the same...
 const createEmptyGrid = () =>
     Array.from({ length: 4 }, () => Array(4).fill(null));
 const getRandomAvailableCell = (grid) => {
@@ -19,11 +20,10 @@ const getRandomAvailableCell = (grid) => {
     }
     return null;
 };
-
 const addRandomTile = (grid) => {
     const newGrid = grid.map((row) => [...row]);
     const cell = getRandomAvailableCell(newGrid);
-    let newTileDataForScenario = null;
+    let newTileData = null;
     if (cell) {
         const value = Math.random() < 0.9 ? 2 : 4;
         newGrid[cell.y][cell.x] = {
@@ -31,22 +31,20 @@ const addRandomTile = (grid) => {
             id: Date.now() + Math.random(),
             isNew: true,
         };
-        // This is the clean object we'll send to the server
-        newTileDataForScenario = { value, position: { x: cell.x, y: cell.y } };
+        // ✨ آبجکت ساده و تمیز برای ارسال به سرور
+        newTileData = { value, x: cell.x, y: cell.y };
     }
-    return { grid: newGrid, newTileData: newTileDataForScenario };
+    return { grid: newGrid, newTileData };
 };
-
-// ... (توابع movesAvailable, slide, combine, transposeGrid, move بدون تغییر باقی می‌مانند)
 const movesAvailable = (g) => {
     for (let y = 0; y < 4; y++)
         for (let x = 0; x < 4; x++) {
             const c = g[y][x];
-            if (!c) return !0;
-            if (x < 3 && c.value === g[y][x + 1]?.value) return !0;
-            if (y < 3 && c.value === g[y + 1][x]?.value) return !0;
+            if (!c) return true;
+            if (x < 3 && c.value === g[y][x + 1]?.value) return true;
+            if (y < 3 && c.value === g[y + 1][x]?.value) return true;
         }
-    return !1;
+    return false;
 };
 const slide = (r) => {
     const a = r.filter((v) => v),
@@ -54,7 +52,6 @@ const slide = (r) => {
         z = Array(m).fill(null);
     return a.concat(z);
 };
-// کد اصلاح‌شده و صحیح
 const combine = (row) => {
     let scoreToAdd = 0;
     for (let i = 0; i < 3; i++) {
@@ -73,66 +70,63 @@ const transposeGrid = (g) => {
 };
 const move = (g, d) => {
     let G = g.map((r) =>
-            r.map((c) => (c ? { ...c, isNew: !1, isMerged: !1 } : null))
+            r.map((c) => (c ? { ...c, isNew: false, isMerged: false } : null))
         ),
         s = 0,
-        m = !1;
+        m = false;
     const H = d === 0 || d === 2,
         R = d === 2 || d === 3;
-    H || (G = transposeGrid(G));
+    if (!H) G = transposeGrid(G);
     for (let y = 0; y < 4; y++) {
         const O = [...G[y]];
         let r = [...O];
-        R && r.reverse();
+        if (R) r.reverse();
         const S = slide(r),
             { newRow: N, score: C } = combine(S);
         let F = slide(N);
         s += C;
-        R && F.reverse();
+        if (R) F.reverse();
         G[y] = F;
-        for (let x = 0; x < 4; x++) O[x]?.value !== F[x]?.value && (m = !0);
+        for (let x = 0; x < 4; x++) if (O[x]?.value !== F[x]?.value) m = true;
     }
-    H || (G = transposeGrid(G));
+    if (!H) G = transposeGrid(G);
     return { newGrid: G, score: s, moved: m };
 };
 
-const Game2048 = ({ onGameOver, onGoHome, eventId, initialBestScore }) => {
+// The Component with the final fix
+const Game2048 = ({ onGameOver, onGoHome, initialBestScore, eventId }) => {
     const [grid, setGrid] = useState(createEmptyGrid());
     const [score, setScore] = useState(0);
-    const [bestScore, setBestScore] = useState(initialBestScore);
-
+    const [bestScore, setBestScore] = useState(initialBestScore || 0);
     const [isGameOver, setGameOver] = useState(false);
 
-    // ✨ CHANGED: Simplified state for scenario. We only need moves and the list of new tiles.
+    // ✨ **THE FIX**: Use separate, reliable states instead of a single scenario object
     const [moves, setMoves] = useState([]);
-    const [newTiles, setNewTiles] = useState([]);
+    const [allNewTiles, setAllNewTiles] = useState([]);
 
     useEffect(() => {
-        setBestScore(initialBestScore);
+        setBestScore(initialBestScore || 0);
     }, [initialBestScore]);
 
     const setupGame = useCallback(() => {
         let tempGrid = createEmptyGrid();
-
         const firstTileResult = addRandomTile(tempGrid);
         tempGrid = firstTileResult.grid;
-
         const secondTileResult = addRandomTile(tempGrid);
 
         setGrid(secondTileResult.grid);
         setScore(0);
         setGameOver(false);
 
-        // ✨ CHANGED: Initialize scenario state correctly.
+        // ✨ Initialize the new states correctly
         setMoves([]);
-        // The server needs ALL new tiles, including the first two.
-        setNewTiles([
-            firstTileResult.newTileData,
-            secondTileResult.newTileData,
-        ]);
-    }, []); // No dependencies needed, it's a self-contained setup function
+        setAllNewTiles(
+            [firstTileResult.newTileData, secondTileResult.newTileData].filter(
+                Boolean
+            )
+        );
+    }, []);
 
-    // This effect runs only once on component mount to setup the game
     useEffect(() => {
         setupGame();
     }, [setupGame]);
@@ -151,33 +145,31 @@ const Game2048 = ({ onGameOver, onGoHome, eventId, initialBestScore }) => {
                 setGrid(gridWithNewTile);
                 setScore(updatedScore);
 
-                // ✨ CHANGED: Use functional updates to guarantee you have the latest state.
+                if (updatedScore > bestScore) {
+                    setBestScore(updatedScore);
+                }
+
+                // ✨ Use functional updates to prevent stale state
                 const directionMap = {
                     0: "left",
                     1: "up",
                     2: "right",
                     3: "down",
                 };
-                setMoves((prevMoves) => [
-                    ...prevMoves,
-                    directionMap[direction],
-                ]);
-                setNewTiles((prevTiles) => [...prevTiles, newTileData]);
+                const newMove = directionMap[direction];
 
-                if (updatedScore > bestScore) {
-                    setBestScore(updatedScore);
-                }
+                setMoves((prevMoves) => [...prevMoves, newMove]);
+                setAllNewTiles((prevTiles) =>
+                    [...prevTiles, newTileData].filter(Boolean)
+                );
 
                 if (!movesAvailable(gridWithNewTile)) {
                     setGameOver(true);
-
-                    // ✨ CHANGED: Construct the final scenario object right before sending it.
-                    // This ensures the data is perfectly up-to-date.
-                    const finalScenario = {
-                        moves: [...moves, directionMap[direction]],
-                        newTiles: [...newTiles, newTileData],
-                    };
-                    onGameOver(updatedScore, finalScenario);
+                    // ✨ Construct the final scenario object on the fly with the latest data
+                    onGameOver(updatedScore, {
+                        moves: [...moves, newMove],
+                        newTiles: [...allNewTiles, newTileData].filter(Boolean),
+                    });
                 }
             }
         },
@@ -189,7 +181,7 @@ const Game2048 = ({ onGameOver, onGoHome, eventId, initialBestScore }) => {
             onGameOver,
             eventId,
             moves,
-            newTiles,
+            allNewTiles,
         ]
     );
 
@@ -212,16 +204,19 @@ const Game2048 = ({ onGameOver, onGoHome, eventId, initialBestScore }) => {
 
     useEffect(() => {
         window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
     }, [handleKeyDown]);
 
-    // ... JSX remains unchanged ...
     const tiles = grid
         .flatMap((row, y) =>
             row.map((cell, x) => (cell ? { ...cell, x, y } : null))
         )
         .filter(Boolean);
+
     return (
+        // ... Your JSX remains unchanged ...
         <div className="game-wrapper">
             <div className="game-header">
                 <h1 className="title">MOMIS 2048</h1>

@@ -62,52 +62,39 @@ const move = (g, d) => {
 };
 
 function simulateGameAndGetScore(gameScenario) {
-    console.log("---poloooo02---");
+    // ✨ **THE FIX**: Directly use the clean `moves` and `newTiles` arrays
+    const { moves, newTiles } = gameScenario;
 
-    const { moves, initialTiles, newTiles: moveTiles } = gameScenario;
-        console.log("---pol11---",moves );
-        console.log("---pol12---",initialTiles );
-        console.log("---pol13---",moveTiles );
-
-    
-    if (!moves || !moveTiles) return 0;
-    console.log("---poloooo03---");
-
-    const allTiles = [...initialTiles, ...moveTiles].filter(Boolean);
-    console.log("---poloooo04---");
+    if (!moves || !newTiles) {
+        console.error("Invalid scenario: moves or newTiles is missing.");
+        return 0;
+    }
 
     let grid = createEmptyGrid();
-        console.log("---poloooo05---");
-
     let totalScore = 0;
     let tileIndex = 0;
     const directionMap = { left: 0, up: 1, right: 2, down: 3 };
-    console.log("---poloooo06---");
 
-    // Place the first two tiles
+    // مرحله ۱: قرار دادن دو کاشی اولیه از ابتدای آرایه newTiles
     for (let i = 0; i < 2; i++) {
-        if (tileIndex < allTiles.length) {
-            const tile = allTiles[tileIndex];
-            // ✨ THE FIX: Read from tile.y and tile.x directly
-            if (tile && tile.y !== undefined && tile.x !== undefined) {
+        if (tileIndex < newTiles.length) {
+            const tile = newTiles[tileIndex];
+            // از tile.y و tile.x استفاده می‌کنیم چون فرانت‌اند اینطور می‌فرستد
+            if (
+                tile &&
+                typeof tile.y !== "undefined" &&
+                typeof tile.x !== "undefined"
+            ) {
                 grid[tile.y][tile.x] = { value: tile.value, id: Math.random() };
-                
-    console.log("---poloooo07---");
-
             }
             tileIndex++;
         }
     }
-    console.log("--- Initial Grid State ---");
-    grid.forEach((row) => {
-        console.log(row.map((cell) => (cell ? cell.value : "-")).join("\t"));
-    });
-    console.log("--------------------------");
 
-    // Process all moves
+    // مرحله ۲: اجرای حرکات
     for (const moveString of moves) {
         const direction = directionMap[moveString];
-        if (direction === undefined) continue;
+        if (typeof direction === "undefined") continue;
 
         const { newGrid, score, moved } = move(grid, direction);
 
@@ -115,13 +102,12 @@ function simulateGameAndGetScore(gameScenario) {
             totalScore += score;
             grid = newGrid;
 
-            if (tileIndex < allTiles.length) {
-                const tile = allTiles[tileIndex];
-                // ✨ THE FIX: Read from tile.y and tile.x directly
+            if (tileIndex < newTiles.length) {
+                const tile = newTiles[tileIndex];
                 if (
                     tile &&
-                    tile.y !== undefined &&
-                    tile.x !== undefined &&
+                    typeof tile.y !== "undefined" &&
+                    typeof tile.x !== "undefined" &&
                     grid[tile.y][tile.x] === null
                 ) {
                     grid[tile.y][tile.x] = {
@@ -133,6 +119,7 @@ function simulateGameAndGetScore(gameScenario) {
             }
         }
     }
+
     return totalScore;
 }
 
