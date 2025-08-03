@@ -62,6 +62,8 @@ const move = (g, d) => {
 };
 
 function simulateGameAndGetScore(gameScenario) {
+    console.log("---poloooo02---");
+
     const { moves, initialTiles, newTiles: moveTiles } = gameScenario;
     if (!moves || !initialTiles || !moveTiles) return 0;
 

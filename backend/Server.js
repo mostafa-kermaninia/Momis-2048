@@ -140,6 +140,7 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
     );
 
     try {
+
         // مرحله ۳: بازی را در سرور با سناریوی کامل شبیه‌سازی می‌کنیم
         // ❗️ تابع simulateGameAndGetScore باید بتواند gameScenario را بپذیرد
         const serverCalculatedScore = simulateGameAndGetScore(gameScenario);
