@@ -66,13 +66,18 @@ function simulateGameAndGetScore(gameScenario) {
 
     const { moves, initialTiles, newTiles: moveTiles } = gameScenario;
     if (!moves || !initialTiles || !moveTiles) return 0;
+    console.log("---poloooo03---");
 
     const allTiles = [...initialTiles, ...moveTiles].filter(Boolean);
+    console.log("---poloooo04---");
 
     let grid = createEmptyGrid();
+        console.log("---poloooo05---");
+
     let totalScore = 0;
     let tileIndex = 0;
     const directionMap = { left: 0, up: 1, right: 2, down: 3 };
+    console.log("---poloooo06---");
 
     // Place the first two tiles
     for (let i = 0; i < 2; i++) {
@@ -81,6 +86,9 @@ function simulateGameAndGetScore(gameScenario) {
             // ✨ THE FIX: Read from tile.y and tile.x directly
             if (tile && tile.y !== undefined && tile.x !== undefined) {
                 grid[tile.y][tile.x] = { value: tile.value, id: Math.random() };
+                
+    console.log("---poloooo07---");
+
             }
             tileIndex++;
         }
