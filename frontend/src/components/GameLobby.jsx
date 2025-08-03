@@ -85,7 +85,7 @@ const GameLobby = ({
                     {onLogout && (
                         <button
                             onClick={onLogout}
-                            className="ml-auto text-xs bg-red-600/70 px-3 py-1.5 rounded-md hover:bg-red-600/90 transition-colors"
+                            className="absolute top-4 right-4 text-xs sm:text-sm bg-red-500/60 hover:bg-red-500/90 text-white font-bold py-2 px-3 sm:px-4 rounded-lg transition-colors shadow-md"
                             title="Logout"
                         >
                             Logout
