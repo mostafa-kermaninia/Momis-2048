@@ -9,6 +9,7 @@ const API_BASE = "https://momis2048.momis.studio/api";
 const tg = window.Telegram?.WebApp;
 
 function App() {
+    const [bestScore, setBestScore] = useState(0); // ✨ State جدید
     const [view, setView] = useState("auth");
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [authLoading, setAuthLoading] = useState(true);
@@ -72,10 +73,41 @@ function App() {
         [token, currentGameEventId]
     );
 
+    const fetchBestScore = useCallback(
+        async (eventId, currentToken) => {
+            const eventParam = eventId || "freeplay";
+            const tokenToUse = currentToken || token;
+
+            if (!tokenToUse) return;
+
+            try {
+                const response = await fetch(
+                    `${API_BASE}/best-score/${eventParam}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${tokenToUse}`,
+                        },
+                    }
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    setBestScore(data.bestScore);
+                } else {
+                    setBestScore(0); // در صورت خطا، بهترین امتیاز صفر است
+                }
+            } catch (error) {
+                console.error("Failed to fetch best score:", error);
+                setBestScore(0);
+            }
+        },
+        [token]
+    );
+
     const startGame = useCallback(
         (eventId) => {
             console.log(`[App.js] Starting Game for event: ${eventId}`);
             setCurrentGameEventId(eventId);
+            fetchBestScore(eventId, token);
 
             if (!isAuthenticated || !token) {
                 setError("Please authenticate first");
@@ -86,7 +118,7 @@ function App() {
             setFinalScore(null);
             setView("game");
         },
-        [isAuthenticated, token]
+        [isAuthenticated, token, fetchBestScore]
     );
 
     const authenticateUser = useCallback(async () => {
@@ -250,6 +282,9 @@ function App() {
                     <Game2048
                         onGameOver={handleGameOver}
                         onGoHome={handleGoHome}
+                        eventId={currentGameEventId}
+                        // ✨ بهترین امتیاز را به عنوان prop به کامپوننت بازی پاس می‌دهیم
+                        initialBestScore={bestScore}
                     />
                 </div>
             ),

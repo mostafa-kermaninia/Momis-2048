@@ -1,17 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import "./Game2048.css";
 
-const localStorageManager = {
-    getBestScore: (eventId) => {
-        const key = eventId ? `bestScore_${eventId}` : "bestScore_freeplay";
-        return parseInt(window.localStorage.getItem(key) || "0", 10);
-    },
-    setBestScore: (score, eventId) => {
-        const key = eventId ? `bestScore_${eventId}` : "bestScore_freeplay";
-        window.localStorage.setItem(key, score);
-    },
-};
-
 const createEmptyGrid = () =>
     Array.from({ length: 4 }, () => Array(4).fill(null));
 const getRandomAvailableCell = (grid) => {
@@ -107,12 +96,11 @@ const move = (g, d) => {
     return { newGrid: G, score: s, moved: m };
 };
 
-const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
+const Game2048 = ({ onGameOver, onGoHome, eventId, initialBestScore }) => {
     const [grid, setGrid] = useState(createEmptyGrid());
     const [score, setScore] = useState(0);
-    const [bestScore, setBestScore] = useState(() =>
-        localStorageManager.getBestScore(eventId)
-    );
+    const [bestScore, setBestScore] = useState(initialBestScore);
+
     const [isGameOver, setGameOver] = useState(false);
 
     // ✨ CHANGED: Simplified state for scenario. We only need moves and the list of new tiles.
@@ -120,8 +108,8 @@ const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
     const [newTiles, setNewTiles] = useState([]);
 
     useEffect(() => {
-        setBestScore(localStorageManager.getBestScore(eventId));
-    }, [eventId]);
+        setBestScore(initialBestScore);
+    }, [initialBestScore]);
 
     const setupGame = useCallback(() => {
         let tempGrid = createEmptyGrid();
@@ -178,7 +166,6 @@ const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
 
                 if (updatedScore > bestScore) {
                     setBestScore(updatedScore);
-                    localStorageManager.setBestScore(updatedScore, eventId);
                 }
 
                 if (!movesAvailable(gridWithNewTile)) {
@@ -281,33 +268,36 @@ const Game2048 = ({ onGameOver, onGoHome, eventId }) => {
                     ))}
                 </div>
             </div>
-            <div className="controls-container">
-                <div className="controls-row">
+            <div className="dpad-controls">
+                <div className="dpad-row">
                     <button
-                        className="control-button"
+                        className="dpad-button"
                         onClick={() => processMove(1)}
                     >
                         ▲
                     </button>
                 </div>
-                <div className="controls-row">
+                <div className="dpad-row">
                     <button
-                        className="control-button"
+                        className="dpad-button"
                         onClick={() => processMove(0)}
                     >
                         ◄
                     </button>
+                    <div className="dpad-center"></div>
                     <button
-                        className="control-button"
-                        onClick={() => processMove(3)}
-                    >
-                        ▼
-                    </button>
-                    <button
-                        className="control-button"
+                        className="dpad-button"
                         onClick={() => processMove(2)}
                     >
                         ►
+                    </button>
+                </div>
+                <div className="dpad-row">
+                    <button
+                        className="dpad-button"
+                        onClick={() => processMove(3)}
+                    >
+                        ▼
                     </button>
                 </div>
             </div>

@@ -5,14 +5,21 @@ import DefaultAvatar from "../assets/default-avatar.png";
 const LeaderboardIcon = () => (
     <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="h-5 w-5"
-        viewBox="0 0 20 20"
-        fill="currentColor"
+        className="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
     >
         <path
-            fillRule="evenodd"
-            d="M10 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zM4 10a1 1 0 011-1h2a1 1 0 110 2H5a1 1 0 01-1-1zm12 0a1 1 0 00-1 1v2a1 1 0 102 0v-2a1 1 0 00-1-1zM13 6a1 1 0 100 2h2a1 1 0 100-2h-2z"
-            clipRule="evenodd"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"
+        />
+        <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M14 21V11h5.945A9.007 9.007 0 0114 21z"
         />
     </svg>
 );
@@ -85,7 +92,7 @@ const GameLobby = ({
                     {onLogout && (
                         <button
                             onClick={onLogout}
-                            className="absolute top-4 right-4 text-xs sm:text-sm bg-red-500/60 hover:bg-red-500/90 text-white font-bold py-2 px-3 sm:px-4 rounded-lg transition-colors shadow-md"
+                            className="absolute top-4 right-4 rounded-lg bg-red-500/60 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-red-500/80 sm:px-4 sm:py-2 sm:text-sm"
                             title="Logout"
                         >
                             Logout

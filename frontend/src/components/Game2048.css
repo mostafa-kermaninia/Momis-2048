@@ -288,3 +288,47 @@
   display: flex;
   gap: 8px;
 }
+
+/* ✅ استایل‌های جدید برای D-pad کنترل موبایل */
+.dpad-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10+ */
+    user-select: none;
+}
+
+.dpad-row {
+    display: flex;
+    justify-content: center;
+}
+
+.dpad-button {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(238, 228, 218, 0.35);
+    border: none;
+    border-radius: 8px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #f9f6f2;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin: 4px;
+}
+
+.dpad-button:active {
+    background-color: rgba(237, 204, 98, 0.8);
+}
+
+.dpad-center {
+    width: 60px;
+    height: 60px;
+    margin: 4px;
+}
