@@ -313,6 +313,34 @@ app.get("/api/avatar", async (req, res) => {
     }
 });
 
+app.get("/api/best-score/:eventId?", authenticateToken, async (req, res) => {
+    const userId = req.user.userId;
+    let { eventId } = req.params;
+
+    // اگر eventId وجود نداشت یا freeplay بود، آن را null در نظر بگیر
+    if (!eventId || eventId === 'freeplay') {
+        eventId = null;
+    }
+
+    try {
+        const bestScoreRecord = await Score.findOne({
+            where: {
+                userTelegramId: userId,
+                eventId: eventId
+            },
+            order: [['score', 'DESC']] // مرتب‌سازی برای پیدا کردن بیشترین امتیاز
+        });
+
+        const bestScore = bestScoreRecord ? bestScoreRecord.score : 0;
+        
+        res.json({ bestScore });
+
+    } catch (error) {
+        logger.error(`Failed to fetch best score for user ${userId}: ${error.message}`);
+        res.status(500).json({ message: "Server error fetching best score" });
+    }
+});
+
 // --- سرو کردن فایل‌های استاتیک فرانت‌اند و مدیریت روت‌های دیگر (بدون تغییر) ---
 app.use(express.static(path.join(__dirname, "../frontend/build")));
 app.get("*", (req, res) => {
