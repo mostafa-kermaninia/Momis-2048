@@ -70,7 +70,7 @@ function simulateGameAndGetScore(gameScenario) {
         console.log("---pol13---",moveTiles );
 
     
-    if (!moves || !initialTiles || !moveTiles) return 0;
+    if (!moves || !moveTiles) return 0;
     console.log("---poloooo03---");
 
     const allTiles = [...initialTiles, ...moveTiles].filter(Boolean);
