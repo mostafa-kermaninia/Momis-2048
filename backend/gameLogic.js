@@ -65,6 +65,11 @@ function simulateGameAndGetScore(gameScenario) {
     console.log("---poloooo02---");
 
     const { moves, initialTiles, newTiles: moveTiles } = gameScenario;
+        console.log("---pol11---",moves );
+        console.log("---pol12---",initialTiles );
+        console.log("---pol13---",moveTiles );
+
+    
     if (!moves || !initialTiles || !moveTiles) return 0;
     console.log("---poloooo03---");
 
