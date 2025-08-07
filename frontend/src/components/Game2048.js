@@ -264,23 +264,16 @@ const Game2048 = ({ onGameOver, onGoHome, initialBestScore, eventId }) => {
                     ))}
                 </div>
                 <div className="tile-container">
-                    <AnimatePresence>
-                        {tiles.map((tile) => (
-                            <motion.div
-                                key={tile.id}
-                                layout // ✅ فقط از پراپرتی layout استفاده می‌کنیم
-                                initial={{ opacity: 0, scale: 0.5 }} // انیمیشن ورود
-                                animate={{ opacity: 1, scale: 1 }} // ---
-                                transition={{ duration: 0.25 }} // ---
-                                // ✅ کلاس‌های موقعیت‌دهی اصلی شما را برمی‌گردانیم
-                                className={`tile tile-${
-                                    tile.value
-                                } tile-position-${tile.x + 1}-${tile.y + 1}`}
-                            >
-                                <div className="tile-inner">{tile.value}</div>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
+                    {tiles.map((tile) => (
+                        <div
+                            key={tile.id}
+                            className={`tile tile-${tile.value} tile-position-${
+                                tile.x + 1
+                            }-${tile.y + 1}`}
+                        >
+                            <div className="tile-inner">{tile.value}</div>
+                        </div>
+                    ))}
                 </div>
             </div>
             <div className="dpad-controls">
