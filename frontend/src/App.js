@@ -3,7 +3,7 @@ import Leaderboard from "./components/Leaderboard";
 import GameLobby from "./components/GameLobby";
 import Game2048 from "./components/Game2048";
 import DefaultAvatar from "./assets/default-avatar.png"; // مسیر را چک کنید
-import { motion, AnimatePresence } from "framer-motion"; 
+import { motion, AnimatePresence } from "framer-motion";
 
 const API_BASE = "https://momis2048.momis.studio/api";
 const tg = window.Telegram?.WebApp;
@@ -26,6 +26,7 @@ function App() {
     const [finalScore, setFinalScore] = useState(null);
 
     const handleShowLeaderboard = useCallback((eventId) => {
+        setFinalScore(null); // <-- ✅ این خط، امتیاز بازی قبلی را پاک می‌کند
         setCurrentGameEventId(eventId); // ذخیره می‌کنیم کدام لیدربورد نمایش داده شود
         setView("board");
         setLeaderboardKey(Date.now()); // برای رفرش شدن کامپوننت
