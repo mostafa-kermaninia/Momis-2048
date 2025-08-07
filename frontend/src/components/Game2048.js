@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion"; // مرحله ۱: کتابخانه انیمیشن را وارد می‌کنیم
+
 import "./Game2048.css";
 
 const createEmptyGrid = () =>
