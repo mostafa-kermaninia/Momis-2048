@@ -3,7 +3,7 @@ import Leaderboard from "./components/Leaderboard";
 import GameLobby from "./components/GameLobby";
 import Game2048 from "./components/Game2048";
 import DefaultAvatar from "./assets/default-avatar.png"; // مسیر را چک کنید
-import { motion } from "framer-motion"; 
+import { motion, AnimatePresence } from "framer-motion"; 
 
 const API_BASE = "https://momis2048.momis.studio/api";
 const tg = window.Telegram?.WebApp;
