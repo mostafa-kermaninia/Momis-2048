@@ -100,7 +100,7 @@ const GameLobby = ({
                         Play
                     </button>
                     <button
-                        className="p-5 bg-slate-700/80 hover:bg-slate-600 rounded-lg transition-colors"
+                        className="p-2 bg-slate-700/80 hover:bg-slate-600 rounded-lg transition-colors"
                         onClick={() => onShowLeaderboard(null)}
                         title="View Leaderboard"
                     >
@@ -133,7 +133,7 @@ const GameLobby = ({
                             Join Event
                         </button>
                         <button
-                            className="p-3 bg-slate-700/80 hover:bg-slate-600 rounded-lg transition-colors"
+                            className="p-1 bg-slate-700/80 hover:bg-slate-600 rounded-lg transition-colors"
                             onClick={() => onShowLeaderboard(event.id)}
                             title="View Leaderboard"
                         >
