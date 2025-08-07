@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion"; // <-- این خط را اضافه کنید
-
 import "./Game2048.css";
 
 const createEmptyGrid = () =>
@@ -185,7 +183,6 @@ const Game2048 = ({ onGameOver, onGoHome, initialBestScore, eventId }) => {
             bestScore,
             isGameOver,
             onGameOver,
-            eventId,
             moves,
             allNewTiles,
         ]
@@ -220,18 +217,6 @@ const Game2048 = ({ onGameOver, onGoHome, initialBestScore, eventId }) => {
             row.map((cell, x) => (cell ? { ...cell, x, y } : null))
         )
         .filter(Boolean);
-
-    const tileVariants = {
-        hidden: { scale: 0, opacity: 0 },
-        visible: {
-            scale: 1,
-            opacity: 1,
-            transition: {
-                duration: 0.2,
-                ease: "easeOut",
-            },
-        },
-    };
     return (
         // ... Your JSX remains unchanged ...
         <div className="game-wrapper">
@@ -245,12 +230,12 @@ const Game2048 = ({ onGameOver, onGoHome, initialBestScore, eventId }) => {
                 </div>
             </div>
             <div className="above-game">
-                <a className="game-button" onClick={setupGame}>
+                <button className="game-button" onClick={setupGame}>
                     New Game
-                </a>
-                <a className="game-button" onClick={onGoHome}>
+                </button>
+                <button className="game-button" onClick={onGoHome}>
                     Home
-                </a>
+                </button>
             </div>
             <div className="game-container">
                 {isGameOver && (
