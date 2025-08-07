@@ -81,23 +81,25 @@ const GameLobby = ({
                         className="w-14 h-14 rounded-full border-2 border-indigo-400"
                         onError={onImageError}
                     />
-                    <div className="flex-grow">
-                        <h2 className="font-bold text-xl leading-tight text-white">
-                            {userData.first_name} {userData.last_name}
-                        </h2>
-                        <p className="text-sm opacity-70">
-                            @{userData.username}
-                        </p>
+                    <div className="flex flex-grow justify-between items-center">
+                        <div>
+                            <h2 className="font-bold text-xl leading-tight text-white">
+                                {userData.first_name} {userData.last_name}
+                            </h2>
+                            <p className="text-sm opacity-70">
+                                @{userData.username}
+                            </p>
+                        </div>
+                        {onLogout && (
+                            <button
+                                onClick={onLogout}
+                                className="text-xs sm:text-sm bg-red-500/60 hover:bg-red-500/90 text-white font-bold py-2 px-3 sm:px-4 rounded-lg transition-colors shadow-md"
+                                title="Logout"
+                            >
+                                Logout
+                            </button>
+                        )}
                     </div>
-                    {onLogout && (
-                        <button
-                            onClick={onLogout}
-                            className="absolute top-4 right-4 text-xs sm:text-sm bg-red-500/60 hover:bg-red-500/90 text-white font-bold py-2 px-3 sm:px-4 rounded-lg transition-colors shadow-md"
-                            title="Logout"
-                        >
-                            Logout
-                        </button>
-                    )}
                 </div>
             )}
 
