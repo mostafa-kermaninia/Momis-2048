@@ -100,14 +100,14 @@ const GameLobby = ({
                         Play
                     </button>
                     <button
-                        className="p-3 bg-slate-700/80 hover:bg-slate-600 rounded-lg transition-colors"
+                        className="p-5 bg-slate-700/80 hover:bg-slate-600 rounded-lg transition-colors"
                         onClick={() => onShowLeaderboard(null)}
                         title="View Leaderboard"
                     >
                         <img
                             src={MyLeaderboardIcon_B}
                             alt="Leaderboard"
-                            className="h-12 w-12" // <-- اندازه بزرگ‌تر
+                            className="h-8 w-8" // <-- اندازه بزرگ‌تر
                         />
                     </button>
                 </div>
@@ -140,7 +140,7 @@ const GameLobby = ({
                             <img
                                 src={MyLeaderboardIcon_G}
                                 alt="Leaderboard"
-                                className="h-10 w-10" // <-- اندازه بزرگ‌تر
+                                className="h-8 w-8" // <-- اندازه بزرگ‌تر
                             />
                         </button>
                     </div>
