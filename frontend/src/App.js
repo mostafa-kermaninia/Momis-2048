@@ -3,7 +3,6 @@ import Leaderboard from "./components/Leaderboard";
 import GameLobby from "./components/GameLobby";
 import Game2048 from "./components/Game2048";
 import DefaultAvatar from "./assets/default-avatar.png"; // مسیر را چک کنید
-import { motion, AnimatePresence } from "framer-motion";
 
 const API_BASE = "https://momis2048.momis.studio/api";
 const tg = window.Telegram?.WebApp;
@@ -271,7 +270,14 @@ function App() {
                     onImageError={handleImageError}
                 />
             ),
-        [view, startGame, userData, handleLogout, handleImageError]
+        [
+            view,
+            startGame,
+            userData,
+            handleLogout,
+            handleImageError,
+            handleShowLeaderboard,
+        ]
     );
 
     const gameContent = useMemo(
@@ -288,7 +294,7 @@ function App() {
                     />
                 </div>
             ),
-        [view, handleGameOver, handleGoHome] // ✨ handleGoHome به وابستگی‌ها اضافه شد
+        [view, handleGameOver, handleGoHome, bestScore, currentGameEventId]
     );
 
     const leaderboardContent = useMemo(
