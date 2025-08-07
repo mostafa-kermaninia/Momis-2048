@@ -268,20 +268,14 @@ const Game2048 = ({ onGameOver, onGoHome, initialBestScore, eventId }) => {
                         {tiles.map((tile) => (
                             <motion.div
                                 key={tile.id}
-                                layoutId={tile.id}
-                                className={`tile tile-${tile.value}`}
-                                style={{
-                                    "--x": tile.x,
-                                    "--y": tile.y,
-                                }}
-                                variants={tileVariants}
-                                initial="hidden"
-                                animate="visible"
-                                exit="hidden"
-                                transition={{
-                                    duration: 0.15,
-                                    ease: "easeInOut",
-                                }}
+                                layout // ✅ فقط از پراپرتی layout استفاده می‌کنیم
+                                initial={{ opacity: 0, scale: 0.5 }} // انیمیشن ورود
+                                animate={{ opacity: 1, scale: 1 }} // ---
+                                transition={{ duration: 0.25 }} // ---
+                                // ✅ کلاس‌های موقعیت‌دهی اصلی شما را برمی‌گردانیم
+                                className={`tile tile-${
+                                    tile.value
+                                } tile-position-${tile.x + 1}-${tile.y + 1}`}
                             >
                                 <div className="tile-inner">{tile.value}</div>
                             </motion.div>

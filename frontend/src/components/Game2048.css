@@ -107,12 +107,10 @@
   position: absolute;
   width: var(--cell-size);
   height: var(--cell-size);
+  /* transition را می‌توانیم برای نرم‌تر شدن تغییر رنگ نگه داریم */
+  transition: background-color 0.2s; 
   border-radius: 3px;
-  /* این خط موقعیت کاشی را بر اساس متغیرهای x و y تنظیم می‌کند */
-  transform: translate(
-    calc(var(--x) * (var(--cell-size) + var(--grid-gap)) + var(--grid-gap)),
-    calc(var(--y) * (var(--cell-size) + var(--grid-gap)) + var(--grid-gap))
-  );
+  /* هرگونه transform که در مرحله قبل اضافه کردید را از اینجا حذف کنید */
 }
 
 .tile-inner {
