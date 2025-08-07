@@ -332,3 +332,20 @@
     height: 60px;
     margin: 4px;
 }
+
+/* قطعه اول: تعریف انیمیشن ظاهر شدن */
+@keyframes appear {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* قطعه دوم: اعمال انیمیشن به کاشی‌های جدید */
+.tile-new .tile-inner {
+  animation: appear 200ms ease-in-out;
+}

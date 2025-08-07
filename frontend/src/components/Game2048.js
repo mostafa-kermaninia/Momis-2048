@@ -269,7 +269,7 @@ const Game2048 = ({ onGameOver, onGoHome, initialBestScore, eventId }) => {
                             key={tile.id}
                             className={`tile tile-${tile.value} tile-position-${
                                 tile.x + 1
-                            }-${tile.y + 1}`}
+                            }-${tile.y + 1} ${tile.isNew ? "tile-new" : ""}`}
                         >
                             <div className="tile-inner">{tile.value}</div>
                         </div>
