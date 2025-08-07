@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import DefaultAvatar from "../assets/default-avatar.png";
-import MyLeaderboardIcon from "../assets/my-leaderboard-icon.png"; // <-- این خط را اضافه کنید
+import MyLeaderboardIcon_B from "../assets/LI-B.png"; // <-- این خط را اضافه کنید
+import MyLeaderboardIcon_G from "../assets/LI-G.png"; // <-- این خط را اضافه کنید
 
 const GameLobby = ({
     onGameStart,
@@ -104,9 +105,9 @@ const GameLobby = ({
                         title="View Leaderboard"
                     >
                         <img
-                            src={MyLeaderboardIcon}
+                            src={MyLeaderboardIcon_B}
                             alt="Leaderboard"
-                            className="h-6 w-6"
+                            className="h-8 w-8" // <-- اندازه بزرگ‌تر
                         />
                     </button>
                 </div>
@@ -137,9 +138,9 @@ const GameLobby = ({
                             title="View Leaderboard"
                         >
                             <img
-                                src={MyLeaderboardIcon}
+                                src={MyLeaderboardIcon_G}
                                 alt="Leaderboard"
-                                className="h-6 w-6"
+                                className="h-8 w-8" // <-- اندازه بزرگ‌تر
                             />
                         </button>
                     </div>
