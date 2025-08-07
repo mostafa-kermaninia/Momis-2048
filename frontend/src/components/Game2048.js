@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion"; // <-- این خط را اضافه کنید
+
 import "./Game2048.css";
 
 const createEmptyGrid = () =>
@@ -56,7 +58,12 @@ const combine = (row) => {
     for (let i = 0; i < 3; i++) {
         if (row[i] && row[i].value === row[i + 1]?.value) {
             scoreToAdd += row[i].value * 2;
-            row[i] = { ...row[i], value: row[i].value * 2, isMerged: true };
+            row[i] = {
+                ...row[i],
+                value: row[i].value * 2,
+                isMerged: true,
+                id: Date.now() + Math.random(),
+            };
             row[i + 1] = null;
         }
     }
@@ -86,7 +93,7 @@ const move = (g, d) => {
         s += C;
         if (R) F.reverse();
         G[y] = F;
-        for (let x = 0; x < 4; x++) if (O[x]?.value !== F[x]?.value) m = true;
+        for (let x = 0; x < 4; x++) if (O[x]?.id !== F[x]?.id) m = true;
     }
     if (!H) G = transposeGrid(G);
     return { newGrid: G, score: s, moved: m };
@@ -257,16 +264,29 @@ const Game2048 = ({ onGameOver, onGoHome, initialBestScore, eventId }) => {
                     ))}
                 </div>
                 <div className="tile-container">
-                    {tiles.map((tile) => (
-                        <div
-                            key={tile.id}
-                            className={`tile tile-${tile.value} tile-position-${
-                                tile.x + 1
-                            }-${tile.y + 1}`}
-                        >
-                            <div className="tile-inner">{tile.value}</div>
-                        </div>
-                    ))}
+                    <AnimatePresence>
+                        {tiles.map((tile) => (
+                            <motion.div
+                                key={tile.id}
+                                layoutId={tile.id}
+                                className={`tile tile-${tile.value}`}
+                                style={{
+                                    "--x": tile.x,
+                                    "--y": tile.y,
+                                }}
+                                variants={tileVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="hidden"
+                                transition={{
+                                    duration: 0.15,
+                                    ease: "easeInOut",
+                                }}
+                            >
+                                <div className="tile-inner">{tile.value}</div>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
                 </div>
             </div>
             <div className="dpad-controls">
