@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import "./Game2048.css";
 
-// Helper functions (slide, combine, etc.) remain the same...
 const createEmptyGrid = () =>
     Array.from({ length: 4 }, () => Array(4).fill(null));
 const getRandomAvailableCell = (grid) => {
@@ -215,6 +214,17 @@ const Game2048 = ({ onGameOver, onGoHome, initialBestScore, eventId }) => {
         )
         .filter(Boolean);
 
+    const tileVariants = {
+        hidden: { scale: 0, opacity: 0 },
+        visible: {
+            scale: 1,
+            opacity: 1,
+            transition: {
+                duration: 0.2,
+                ease: "easeOut",
+            },
+        },
+    };
     return (
         // ... Your JSX remains unchanged ...
         <div className="game-wrapper">
@@ -224,10 +234,6 @@ const Game2048 = ({ onGameOver, onGoHome, initialBestScore, eventId }) => {
                     <div className="score-box">
                         <span className="score-label">SCORE</span>
                         {score}
-                    </div>
-                    <div className="score-box">
-                        <span className="score-label">BEST</span>
-                        {bestScore}
                     </div>
                 </div>
             </div>
@@ -251,16 +257,25 @@ const Game2048 = ({ onGameOver, onGoHome, initialBestScore, eventId }) => {
                     ))}
                 </div>
                 <div className="tile-container">
-                    {tiles.map((tile) => (
-                        <div
-                            key={tile.id}
-                            className={`tile tile-${tile.value} tile-position-${
-                                tile.x + 1
-                            }-${tile.y + 1}`}
-                        >
-                            <div className="tile-inner">{tile.value}</div>
-                        </div>
-                    ))}
+                    {/* مرحله ۳: استفاده از AnimatePresence برای مدیریت ظهور و حذف کاشی‌ها */}
+                    <AnimatePresence>
+                        {tiles.map((tile) => (
+                            // مرحله ۴: تبدیل div به motion.div و اعمال انیمیشن
+                            <motion.div
+                                key={tile.id}
+                                className={`tile tile-${
+                                    tile.value
+                                } tile-position-${tile.x + 1}-${tile.y + 1}`}
+                                variants={tileVariants}
+                                initial="hidden"
+                                animate="visible"
+                                // layoutId باعث حرکت نرم کاشی‌ها در صفحه می‌شود
+                                layoutId={tile.id}
+                            >
+                                <div className="tile-inner">{tile.value}</div>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
                 </div>
             </div>
             <div className="dpad-controls">
