@@ -133,14 +133,14 @@ const GameLobby = ({
                             Join Event
                         </button>
                         <button
-                            className="p-1 bg-slate-700/80 hover:bg-slate-600 rounded-lg transition-colors"
+                            className="p-2 bg-slate-700/80 hover:bg-slate-600 rounded-lg transition-colors"
                             onClick={() => onShowLeaderboard(event.id)}
                             title="View Leaderboard"
                         >
                             <img
                                 src={MyLeaderboardIcon_G}
                                 alt="Leaderboard"
-                                className="h-10 w-10" // <-- اندازه بزرگ‌تر
+                                className="h-8 w-8" // <-- اندازه بزرگ‌تر
                             />
                         </button>
                     </div>
