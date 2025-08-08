@@ -155,41 +155,45 @@ function App() {
         }
     }, []);
 
-    // ✨ هوک جدید برای مدیریت آماده شدن تلگرام
+    // ✨ useEffect اصلی با منطق کاملاً بازنویسی شده و بهینه
     useEffect(() => {
-        if (tg) {
-            tg.ready(); // به تلگرام اطلاع می‌دهیم که برنامه آماده است
-            tg.expand(); // برنامه را تمام صفحه می‌کنیم
+        const initApp = async () => {
+            // اولویت اول: آیا توکن و داده معتبر در حافظه وجود دارد؟
+            const storedToken = localStorage.getItem("jwtToken");
+            const storedUserData = localStorage.getItem("userData");
 
-            // اگر داده‌های کاربر از قبل در localStorage وجود دارد، مستقیم به لابی برو
-            if (
-                localStorage.getItem("jwtToken") &&
-                localStorage.getItem("userData")
-            ) {
+            if (storedToken && storedUserData) {
+                console.log("Authentication from localStorage.");
+                setToken(storedToken);
+                setUserData(JSON.parse(storedUserData));
                 setIsAuthenticated(true);
                 setView("lobby");
                 setAuthLoading(false);
-            } else if (tg.initData) {
-                // اگر داده‌ای برای احراز هویت وجود دارد، تابع را صدا بزن
-                authenticateUser();
-            } else {
-                // این حالت برای توسعه در مرورگر است
-                console.warn("Running in non-Telegram environment.");
-                setIsAuthenticated(true); // برای تست، فرض می‌کنیم احراز هویت شده
-                setView("lobby");
-                setAuthLoading(false);
+                return; // <-- پایان فرآیند
             }
-        } else {
-            // اگر آبجکت تلگرام کلا وجود نداشت (محیط تست)
-            console.warn(
-                "Running in non-Telegram environment (object not found)."
-            );
+
+            // اولویت دوم: آیا در محیط تلگرام هستیم و داده برای احراز هویت داریم؟
+            if (tg && tg.initData) {
+                console.log("Authenticating with Telegram data...");
+                // تابع authenticateUser فقط همین یک بار فراخوانی می‌شود
+                await authenticateUser();
+                return; // <-- پایان فرآیند
+            }
+
+            // حالت بازگشتی: برای محیط تست خارج از تلگرام
+            console.warn("Running in non-Telegram development mode.");
             setIsAuthenticated(true);
             setView("lobby");
             setAuthLoading(false);
-        }
-    }, [authenticateUser]);
+        };
 
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+
+        initApp();
+    }, [authenticateUser]); // فقط به authenticateUser وابسته است
     const handleLogout = useCallback(() => {
         localStorage.removeItem("jwtToken");
         localStorage.removeItem("userData");
@@ -208,16 +212,6 @@ function App() {
     const handleGoHome = useCallback(() => {
         setView("lobby");
     }, []);
-
-    useEffect(() => {
-        if (token && userData) {
-            setIsAuthenticated(true);
-            setView("lobby");
-            setAuthLoading(false);
-        } else {
-            authenticateUser();
-        }
-    }, [authenticateUser, token, userData]);
 
     const authContent = useMemo(
         () =>
