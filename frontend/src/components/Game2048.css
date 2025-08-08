@@ -413,23 +413,24 @@
     margin-bottom: 2px;
 }
 
-/* تغییر نام کلاس دکمه‌ها برای خوانایی بهتر */
 .game-button {
-    background: #8f7a66;
-    color: #f9f6f2;
-    padding: 8px 16px;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background-color 0.2s;
-    font-size: clamp(0.9rem, 3vw, 1rem);
+  background: #4f3b78; /* <-- رنگ بنفش مومیس */
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out; /* 'all' برای انیمیشن نرم‌تر */
+  font-size: clamp(0.9rem, 3vw, 1rem);
+  border: 2px solid transparent; /* برای جلوگیری از پرش در هاور */
 }
 
 .game-button:hover {
-    background: #9f8b77;
+  background: #0d1f3a; /* <-- پس‌زمینه تیره در هاور */
+  color: #00f5d4;     /* <-- رنگ متن فیروزه‌ای */
+  border-color: #00f5d4; /* <-- حاشیه فیروزه‌ای برای تاکید بیشتر */
 }
-
 /* برای هماهنگی، نام کلاس score-container را به score-box تغییر دادیم */
 /* و استایل best-container حذف شد چون از score-box استفاده می‌کند */
 
