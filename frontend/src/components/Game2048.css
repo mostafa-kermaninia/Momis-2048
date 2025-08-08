@@ -387,49 +387,50 @@
         background-color: #9f8b77;
     }
 }
-
-/*
-  ========================================
-  ✨ استایل جدید برای نمایش امتیازها
-  ========================================
-*/
 .score-box {
-    background-color: #bbada0;
+    background-color: #00f5d4; /* <-- رنگ فیروزه‌ای مومیس */
     padding: 8px 16px;
-    border-radius: 4px;
-    color: white;
+    border-radius: 6px; /* کمی گردتر برای زیبایی بیشتر */
+    color: #0d1f3a; /* <-- رنگ متن آبی تیره برای خوانایی */
     font-weight: bold;
-    font-size: 1.5rem; /* کمی بزرگتر کردن عدد امتیاز */
+    font-size: 1.5rem;
     min-width: 80px;
     text-align: center;
     display: flex;
-    flex-direction: column; /* چیدن لیبل و عدد روی هم */
+    flex-direction: column;
+    box-shadow: 0 4px 15px rgba(0, 245, 212, 0.3); /* افزودن یک سایه درخشان */
+    transition: transform 0.2s ease;
+}
+
+.score-box:hover {
+    transform: translateY(-2px); /* افکت شناور شدن در هاور */
 }
 
 .score-label {
     font-size: 0.8rem;
-    font-weight: normal;
-    color: #eee4da; /* کمی روشن‌تر برای خوانایی */
+    font-weight: bold; /* لیبل را هم ضخیم می‌کنیم */
+    color: #0d1f3a; /* <-- رنگ متن آبی تیره */
+    opacity: 0.8; /* کمی شفافیت برای ایجاد تمایز */
     margin-bottom: 2px;
 }
 
 .game-button {
-  background: #4f3b78; /* <-- رنگ بنفش مومیس */
-  color: #ffffff;
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.2s ease-in-out; /* 'all' برای انیمیشن نرم‌تر */
-  font-size: clamp(0.9rem, 3vw, 1rem);
-  border: 2px solid transparent; /* برای جلوگیری از پرش در هاور */
+    background: #4f3b78; /* <-- رنگ بنفش مومیس */
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out; /* 'all' برای انیمیشن نرم‌تر */
+    font-size: clamp(0.9rem, 3vw, 1rem);
+    border: 2px solid transparent; /* برای جلوگیری از پرش در هاور */
 }
 
 .game-button:hover {
-  background: #0d1f3a; /* <-- پس‌زمینه تیره در هاور */
-  color: #00f5d4;     /* <-- رنگ متن فیروزه‌ای */
-  border-color: #00f5d4; /* <-- حاشیه فیروزه‌ای برای تاکید بیشتر */
+    background: #0d1f3a; /* <-- پس‌زمینه تیره در هاور */
+    color: #00f5d4; /* <-- رنگ متن فیروزه‌ای */
+    border-color: #00f5d4; /* <-- حاشیه فیروزه‌ای برای تاکید بیشتر */
 }
 /* برای هماهنگی، نام کلاس score-container را به score-box تغییر دادیم */
 /* و استایل best-container حذف شد چون از score-box استفاده می‌کند */
