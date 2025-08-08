@@ -231,54 +231,68 @@
     );
 }
 
-.tile-2 .tile-inner   { background: #4f3b78; }
-.tile-4 .tile-inner   { background: #5a4387; }
-.tile-8 .tile-inner   { background: #6a4f9b; }
-.tile-16 .tile-inner  { background: #7a5ba9; }
-
-/* کاشی‌های میانی به سمت آبی می‌روند */
-.tile-32 .tile-inner  { background: #3b3a88; }
-.tile-64 .tile-inner  { background: #2a3899; }
-
-/* کاشی‌های بالاتر از رنگ فیروزه‌ای برای هایلایت استفاده می‌کنند */
-.tile-128 .tile-inner { 
-    background: #00f5d4; 
-    color: #0d1f3a; /* متن تیره برای خوانایی روی پس‌زمینه روشن */
-    font-size: clamp(1rem, 7vw, 2.2rem); 
-    box-shadow: 0 0 15px #00f5d4;
+.tile-2 {
+    background: #c4c4cf;
+    color: #1d1d2d;
 }
-.tile-256 .tile-inner { 
-    background: #00e0c3; 
-    color: #0d1f3a;
-    font-size: clamp(1rem, 7vw, 2.2rem);
-    box-shadow: 0 0 20px #00f5d4;
-}
-.tile-512 .tile-inner { 
-    background: #00cbb2; 
-    color: #0d1f3a;
-    font-size: clamp(1rem, 7vw, 2.2rem); 
-    box-shadow: 0 0 25px #00f5d4;
-}
-
-/* کاشی‌های نهایی با گرادینت و انیمیشن خاص */
-.tile-1024 .tile-inner {
+.tile-4 {
+    background: #9a5ce3;
     color: #ffffff;
-    background: linear-gradient(45deg, #4f3b78, #00f5d4);
-    font-size: clamp(0.8rem, 6vw, 1.8rem);
+}
+.tile-8 {
+    background: #00d0c0;
+    color: #1d1d2d;
+}
+.tile-16 {
+    background: #9efed4;
+    color: #1d1d2d;
+}
+.tile-32 {
+    background: linear-gradient(45deg, #9a5ce3, #c4c4cf);
+    color: #ffffff;
+}
+.tile-64 {
+    background: linear-gradient(45deg, #00d0c0, #9efed4);
+    color: #1d1d2d;
+}
+.tile-128 {
+    background: linear-gradient(45deg, #9a5ce3, #00d0c0);
+    color: #ffffff;
+    box-shadow: 0 0 15px rgba(154, 92, 227, 0.5);
+}
+.tile-256 {
+    background: linear-gradient(45deg, #00d0c0, #9efed4);
+    color: #1d1d2d;
+    box-shadow: 0 0 20px rgba(0, 208, 192, 0.5);
+}
+.tile-512 {
+    background: linear-gradient(45deg, #9efed4, #9a5ce3);
+    color: #1d1d2d;
+    box-shadow: 0 0 25px rgba(158, 254, 212, 0.5);
+}
+.tile-1024 {
+    background: linear-gradient(45deg, #1d1d2d, #9a5ce3, #00d0c0);
+    color: #9efed4;
+    font-size: 1.2rem;
     animation: pulse-glow 2s infinite;
 }
-.tile-2048 .tile-inner {
-    color: #ffffff;
-    background: linear-gradient(45deg, #00f5d4, #4f3b78);
-    font-size: clamp(0.8rem, 6vw, 1.8rem);
-    animation: pulse-glow 1.5s infinite;
+.tile-2048 {
+    background: linear-gradient(45deg, #9efed4, #00d0c0, #9a5ce3);
+    color: #1d1d2d;
+    font-size: 1.2rem;
+    animation: rainbow-glow 1.5s infinite;
 }
 
-
 @keyframes pulse-glow {
-    0% { box-shadow: 0 0 15px #00f5d4; }
-    50% { box-shadow: 0 0 30px #5a4387; }
-    100% { box-shadow: 0 0 15px #00f5d4; }
+    0% {
+        box-shadow: 0 0 15px #00f5d4;
+    }
+    50% {
+        box-shadow: 0 0 30px #5a4387;
+    }
+    100% {
+        box-shadow: 0 0 15px #00f5d4;
+    }
 }
 /* انیمیشن‌ها (بدون تغییر) */
 @keyframes appear {
