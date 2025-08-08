@@ -231,52 +231,58 @@
     );
 }
 
-.tile-2 {
+.tile-2 .tile-inner {
     background: #c4c4cf;
     color: #1d1d2d;
 }
-.tile-4 {
+.tile-4 .tile-inner {
     background: #9a5ce3;
     color: #ffffff;
 }
-.tile-8 {
+.tile-8 .tile-inner {
     background: #00d0c0;
     color: #1d1d2d;
 }
-.tile-16 {
+.tile-16 .tile-inner {
     background: #9efed4;
     color: #1d1d2d;
 }
-.tile-32 {
+
+/* کاشی‌های میانی به سمت آبی می‌روند */
+.tile-32 .tile-inner {
     background: linear-gradient(45deg, #9a5ce3, #c4c4cf);
     color: #ffffff;
 }
-.tile-64 {
+.tile-64 .tile-inner {
     background: linear-gradient(45deg, #00d0c0, #9efed4);
     color: #1d1d2d;
 }
-.tile-128 {
+
+/* کاشی‌های بالاتر از رنگ فیروزه‌ای برای هایلایت استفاده می‌کنند */
+.tile-128 .tile-inner {
     background: linear-gradient(45deg, #9a5ce3, #00d0c0);
     color: #ffffff;
     box-shadow: 0 0 15px rgba(154, 92, 227, 0.5);
 }
-.tile-256 {
+.tile-256 .tile-inner {
     background: linear-gradient(45deg, #00d0c0, #9efed4);
     color: #1d1d2d;
     box-shadow: 0 0 20px rgba(0, 208, 192, 0.5);
 }
-.tile-512 {
+.tile-512 .tile-inner {
     background: linear-gradient(45deg, #9efed4, #9a5ce3);
     color: #1d1d2d;
     box-shadow: 0 0 25px rgba(158, 254, 212, 0.5);
 }
-.tile-1024 {
+
+/* کاشی‌های نهایی با گرادینت و انیمیشن خاص */
+.tile-1024 .tile-inner {
     background: linear-gradient(45deg, #1d1d2d, #9a5ce3, #00d0c0);
     color: #9efed4;
     font-size: 1.2rem;
     animation: pulse-glow 2s infinite;
 }
-.tile-2048 {
+.tile-2048 .tile-inner {
     background: linear-gradient(45deg, #9efed4, #00d0c0, #9a5ce3);
     color: #1d1d2d;
     font-size: 1.2rem;
