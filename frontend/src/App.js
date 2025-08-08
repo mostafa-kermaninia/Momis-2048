@@ -317,7 +317,7 @@ function App() {
     );
 
     return (
-        <div className="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-indigo-900 text-white p-4 font-[Vazirmatn]">
+        <div className="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-momis-blue to-momis-purple text-white p-4 font-[Vazirmatn]">
             {error && (
                 <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-md shadow-lg z-50">
                     {error}
