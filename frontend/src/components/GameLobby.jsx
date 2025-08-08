@@ -47,7 +47,7 @@ const GameLobby = ({
     return (
         <div className="w-full max-w-md mx-auto bg-slate-800/50 backdrop-blur-xl rounded-2xl shadow-2xl p-6 text-white animate-fade-in border border-slate-700">
             {userData && (
-                <div className="relative flex items-center gap-4 bg-black/20 p-3 rounded-xl mb-8">
+                <div className="relative flex items-center gap-4 bg-black/20 p-4 rounded-xl mb-8">
                     <img
                         src={
                             userData.photo_url
