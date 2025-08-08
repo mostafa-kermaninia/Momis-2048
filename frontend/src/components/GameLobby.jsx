@@ -140,7 +140,7 @@ const GameLobby = ({
                             <img
                                 src={MyLeaderboardIcon_G}
                                 alt="Leaderboard"
-                                className="h-8 w-8" // <-- اندازه بزرگ‌تر
+                                className="h-10 w-10" // <-- اندازه بزرگ‌تر
                             />
                         </button>
                     </div>
