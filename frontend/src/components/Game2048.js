@@ -104,11 +104,8 @@ const Game2048 = ({
     onGameOver,
     onGoHome,
     initialBestScore,
-    eventId,
-    isSoundOn,
-    toggleSound,
     isMuted,
-    onToggleMute,
+    onToggleMute
 }) => {
     const [grid, setGrid] = useState(createEmptyGrid());
     const [score, setScore] = useState(0);
@@ -257,7 +254,7 @@ const Game2048 = ({
                     New Game
                 </button>
                 {/* ✅ دکمه کنترل صدا */}
-                <button className="game-button" onClick={toggleSound}>
+                <button className="game-button" onClick={onToggleMute}>
                     {isMuted ? "Sound: OFF" : "Sound: ON"}
                 </button>
                 <button className="game-button" onClick={onGoHome}>

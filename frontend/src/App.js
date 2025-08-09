@@ -309,10 +309,9 @@ function App() {
                         eventId={currentGameEventId}
                         // ✨ بهترین امتیاز را به عنوان prop به کامپوننت بازی پاس می‌دهیم
                         initialBestScore={bestScore}
-                            isMuted={isMuted}  
-                                onToggleMute={handleToggleMute} // <-- prop جدید
-           // <-- prop جدید
-
+                        isMuted={isMuted}
+                        onToggleMute={handleToggleMute} // <-- prop جدید
+                        // <-- prop جدید
                     />
                 </div>
             ),
