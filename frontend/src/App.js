@@ -24,6 +24,7 @@ function App() {
     const [leaderboardKey, setLeaderboardKey] = useState(Date.now());
     const [currentGameEventId, setCurrentGameEventId] = useState(null);
     const [finalScore, setFinalScore] = useState(null);
+    const [isSoundOn, setIsSoundOn] = useState(true); // <-- این خط را اضافه کنید
 
     const handleShowLeaderboard = useCallback((eventId) => {
         setFinalScore(null); // <-- ✅ این خط، امتیاز بازی قبلی را پاک می‌کند
@@ -212,7 +213,9 @@ function App() {
     const handleGoHome = useCallback(() => {
         setView("lobby");
     }, []);
-
+    const toggleSound = useCallback(() => {
+        setIsSoundOn((prev) => !prev);
+    }, []);
     const authContent = useMemo(
         () =>
             view === "auth" && (
@@ -287,10 +290,20 @@ function App() {
                         eventId={currentGameEventId}
                         // ✨ بهترین امتیاز را به عنوان prop به کامپوننت بازی پاس می‌دهیم
                         initialBestScore={bestScore}
+                        isSoundOn={isSoundOn} // <-- prop جدید
+                        toggleSound={toggleSound} // <-- prop جدید
                     />
                 </div>
             ),
-        [view, handleGameOver, handleGoHome, bestScore, currentGameEventId]
+        [
+            view,
+            handleGameOver,
+            handleGoHome,
+            bestScore,
+            currentGameEventId,
+            isSoundOn,
+            toggleSound,
+        ]
     );
 
     const leaderboardContent = useMemo(

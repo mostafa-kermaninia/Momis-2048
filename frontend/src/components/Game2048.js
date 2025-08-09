@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { playSound } from "../utils/SoundManager"; // <-- این خط را اضافه کنید
+
 import "./Game2048.css";
 
 const createEmptyGrid = () =>
@@ -98,7 +100,14 @@ const move = (g, d) => {
 };
 
 // The Component with the final fix
-const Game2048 = ({ onGameOver, onGoHome, initialBestScore, eventId }) => {
+const Game2048 = ({
+    onGameOver,
+    onGoHome,
+    initialBestScore,
+    eventId,
+    isSoundOn,
+    toggleSound,
+}) => {
     const [grid, setGrid] = useState(createEmptyGrid());
     const [score, setScore] = useState(0);
     const [bestScore, setBestScore] = useState(initialBestScore || 0);
@@ -142,6 +151,15 @@ const Game2048 = ({ onGameOver, onGoHome, initialBestScore, eventId }) => {
             const { newGrid, score: newScore, moved } = move(grid, direction);
 
             if (moved) {
+                if (isSoundOn) {
+                    // اگر امتیازی اضافه شده، یعنی ادغام رخ داده
+                    if (newScore > 0) {
+                        playSound("merge");
+                    } else {
+                        // در غیر این صورت فقط حرکت بوده
+                        playSound("move");
+                    }
+                }
                 const { grid: gridWithNewTile, newTileData } =
                     addRandomTile(newGrid);
                 const updatedScore = score + newScore;
@@ -168,6 +186,8 @@ const Game2048 = ({ onGameOver, onGoHome, initialBestScore, eventId }) => {
                 );
 
                 if (!movesAvailable(gridWithNewTile)) {
+                    if (isSoundOn) playSound("gameOver"); // <-- صدای پایان بازی
+
                     setGameOver(true);
                     // ✨ Construct the final scenario object on the fly with the latest data
                     onGameOver(updatedScore, {
@@ -177,15 +197,7 @@ const Game2048 = ({ onGameOver, onGoHome, initialBestScore, eventId }) => {
                 }
             }
         },
-        [
-            grid,
-            score,
-            bestScore,
-            isGameOver,
-            onGameOver,
-            moves,
-            allNewTiles,
-        ]
+        [grid, score, bestScore, isGameOver, onGameOver, moves, allNewTiles]
     );
 
     const handleKeyDown = useCallback(
@@ -232,6 +244,10 @@ const Game2048 = ({ onGameOver, onGoHome, initialBestScore, eventId }) => {
             <div className="above-game">
                 <button className="game-button" onClick={setupGame}>
                     New Game
+                </button>
+                {/* ✅ دکمه کنترل صدا */}
+                <button className="game-button" onClick={toggleSound}>
+                    {isSoundOn ? "Sound: ON" : "Sound: OFF"}
                 </button>
                 <button className="game-button" onClick={onGoHome}>
                     Home
