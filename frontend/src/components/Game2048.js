@@ -258,7 +258,7 @@ const Game2048 = ({
                 </button>
                 {/* ✅ دکمه کنترل صدا */}
                 <button className="game-button" onClick={toggleSound}>
-                    {!isMuted ? "Sound: ON" : "Sound: OFF"}
+                    {isMuted ? "Sound: OFF" : "Sound: ON"}
                 </button>
                 <button className="game-button" onClick={onGoHome}>
                     Home
