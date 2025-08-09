@@ -197,7 +197,7 @@ const Game2048 = ({
                 }
             }
         },
-        [grid, score, bestScore, isGameOver, onGameOver, moves, allNewTiles]
+        [grid, score, bestScore, isGameOver, onGameOver, moves, allNewTiles, isSoundOn]
     );
 
     const handleKeyDown = useCallback(
