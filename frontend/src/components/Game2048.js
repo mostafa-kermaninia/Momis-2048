@@ -107,6 +107,8 @@ const Game2048 = ({
     eventId,
     isSoundOn,
     toggleSound,
+    isMuted,
+    onToggleMute,
 }) => {
     const [grid, setGrid] = useState(createEmptyGrid());
     const [score, setScore] = useState(0);
@@ -151,7 +153,7 @@ const Game2048 = ({
             const { newGrid, score: newScore, moved } = move(grid, direction);
 
             if (moved) {
-                if (isSoundOn) {
+                if (!isMuted) {
                     // اگر امتیازی اضافه شده، یعنی ادغام رخ داده
                     if (newScore > 0) {
                         playSound("merge");
@@ -186,7 +188,7 @@ const Game2048 = ({
                 );
 
                 if (!movesAvailable(gridWithNewTile)) {
-                    if (isSoundOn) playSound("gameOver"); // <-- صدای پایان بازی
+                    if (!isMuted) playSound("gameOver"); // <-- صدای پایان بازی
 
                     setGameOver(true);
                     // ✨ Construct the final scenario object on the fly with the latest data
@@ -197,7 +199,16 @@ const Game2048 = ({
                 }
             }
         },
-        [grid, score, bestScore, isGameOver, onGameOver, moves, allNewTiles, isSoundOn]
+        [
+            grid,
+            score,
+            bestScore,
+            isGameOver,
+            onGameOver,
+            moves,
+            allNewTiles,
+            isMuted,
+        ]
     );
 
     const handleKeyDown = useCallback(
@@ -247,7 +258,7 @@ const Game2048 = ({
                 </button>
                 {/* ✅ دکمه کنترل صدا */}
                 <button className="game-button" onClick={toggleSound}>
-                    {isSoundOn ? "Sound: ON" : "Sound: OFF"}
+                    {!isMuted ? "Sound: ON" : "Sound: OFF"}
                 </button>
                 <button className="game-button" onClick={onGoHome}>
                     Home

@@ -4,6 +4,10 @@ import GameLobby from "./components/GameLobby";
 import Game2048 from "./components/Game2048";
 import DefaultAvatar from "./assets/default-avatar.png"; // مسیر را چک کنید
 import { motion, AnimatePresence } from "framer-motion";
+import {
+    playMusic,
+    toggleMute as toggleSoundManagerMute,
+} from "./utils/SoundManager"; // <-- این خط را اضافه کنید
 
 const API_BASE = "https://momis2048.momis.studio/api";
 const tg = window.Telegram?.WebApp;
@@ -24,7 +28,7 @@ function App() {
     const [leaderboardKey, setLeaderboardKey] = useState(Date.now());
     const [currentGameEventId, setCurrentGameEventId] = useState(null);
     const [finalScore, setFinalScore] = useState(null);
-    const [isSoundOn, setIsSoundOn] = useState(true); // <-- این خط را اضافه کنید
+    const [isMuted, setIsMuted] = useState(false); // <-- این خط را اضافه کنید
 
     const handleShowLeaderboard = useCallback((eventId) => {
         setFinalScore(null); // <-- ✅ این خط، امتیاز بازی قبلی را پاک می‌کند
@@ -195,6 +199,18 @@ function App() {
 
         initApp();
     }, [authenticateUser]); // فقط به authenticateUser وابسته است
+
+    // ✅ این هوک جدید را اضافه کنید
+    useEffect(() => {
+        if (view === "game") {
+            playMusic("game");
+        } else if (view === "lobby" || view === "board") {
+            playMusic("lobby");
+        } else {
+            playMusic(null); // در صفحه auth موسیقی پخش نشود
+        }
+    }, [view]); // این هوک فقط به view و
+
     const handleLogout = useCallback(() => {
         localStorage.removeItem("jwtToken");
         localStorage.removeItem("userData");
@@ -213,9 +229,12 @@ function App() {
     const handleGoHome = useCallback(() => {
         setView("lobby");
     }, []);
-    const toggleSound = useCallback(() => {
-        setIsSoundOn((prev) => !prev);
+    // ✅ این تابع را اضافه کنید
+    const handleToggleMute = useCallback(() => {
+        const newMuteState = toggleSoundManagerMute();
+        setIsMuted(newMuteState);
     }, []);
+
     const authContent = useMemo(
         () =>
             view === "auth" && (
@@ -290,20 +309,14 @@ function App() {
                         eventId={currentGameEventId}
                         // ✨ بهترین امتیاز را به عنوان prop به کامپوننت بازی پاس می‌دهیم
                         initialBestScore={bestScore}
-                        isSoundOn={isSoundOn} // <-- prop جدید
-                        toggleSound={toggleSound} // <-- prop جدید
+                            isMuted={isMuted}  
+                                onToggleMute={handleToggleMute} // <-- prop جدید
+           // <-- prop جدید
+
                     />
                 </div>
             ),
-        [
-            view,
-            handleGameOver,
-            handleGoHome,
-            bestScore,
-            currentGameEventId,
-            isSoundOn,
-            toggleSound,
-        ]
+        [view, handleGameOver, handleGoHome, bestScore, currentGameEventId]
     );
 
     const leaderboardContent = useMemo(
