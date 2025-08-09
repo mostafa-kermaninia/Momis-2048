@@ -315,7 +315,15 @@ function App() {
                     />
                 </div>
             ),
-        [view, handleGameOver, handleGoHome, bestScore, currentGameEventId]
+        [
+            view,
+            handleGameOver,
+            handleGoHome,
+            bestScore,
+            currentGameEventId,
+            isMuted, // <-- این را اضافه کنید
+            handleToggleMute,
+        ]
     );
 
     const leaderboardContent = useMemo(
