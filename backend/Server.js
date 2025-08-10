@@ -1,6 +1,7 @@
 console.log("✅ Server.js file is starting to execute...");
 require("dotenv").config();
 const { simulateGameAndGetScore } = require("./gameLogic"); // مسیر فایل را چک کنید
+const { isUserMember } = require("./bot");
 
 const express = require("express");
 const cors = require("cors");
@@ -68,6 +69,21 @@ app.post("/api/telegram-auth", async (req, res) => {
                 .json({ valid: false, message: "initData is required" });
 
         const userData = validateTelegramData(initData);
+
+        // --- بخش جدید: بررسی عضویت اجباری ---
+        const isMember = await isUserMember(userData.id);
+
+        if (!isMember) {
+            logger.info(`Auth blocked for non-member user: ${userData.id}`);
+            // کد 403 به معنی "دسترسی ممنوع" است
+            return res.status(403).json({
+                valid: false,
+                message:
+                    "To play the game, you must join our channel and group first.",
+                membership_required: true, // یک فلگ برای فرانت‌اند تا پیام مناسب را نمایش دهد
+            });
+        }
+        // --- پایان بخش بررسی عضویت ---
 
         const [user, created] = await User.findOrCreate({
             where: { telegramId: userData.id },

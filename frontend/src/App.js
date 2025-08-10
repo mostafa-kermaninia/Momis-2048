@@ -18,6 +18,12 @@ function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [authLoading, setAuthLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [membershipRequired, setMembershipRequired] = useState(false);
+
+
+    localStorage.removeItem("jwtToken");
+    localStorage.removeItem("userData");
+
     const [userData, setUserData] = useState(() => {
         const saved = localStorage.getItem("userData");
         return saved ? JSON.parse(saved) : null;
@@ -127,11 +133,12 @@ function App() {
         [isAuthenticated, token, fetchBestScore]
     );
 
-    const authenticateUser = useCallback(async () => {
-        setAuthLoading(true);
-        setError(null);
+const authenticateUser = useCallback(async () => {
         try {
-            // ✨ دیگر مستقیماً چک نمی‌کنیم، چون این تابع فقط وقتی تلگرام آماده باشد صدا زده می‌شود
+            setAuthLoading(true);
+            setError(null);
+            setMembershipRequired(false);
+
             const initData = tg.initData;
 
             const response = await fetch(`${API_BASE}/telegram-auth`, {
@@ -139,7 +146,15 @@ function App() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ initData }),
             });
+
             const data = await response.json();
+
+            if (response.status === 403 && data.membership_required) {
+                setMembershipRequired(true); // حالت نمایش پیام عضویت را فعال می‌کنیم
+                setView("auth"); // در همین صفحه باقی می‌مانیم
+                setError(data.message); // پیام خطا را از سرور می‌گیریم
+                return; // از ادامه تابع خارج می‌شویم
+            }
             if (!response.ok || !data.valid) {
                 throw new Error(data.message || "Authentication failed");
             }
@@ -247,6 +262,44 @@ function App() {
                     >
                         MOMIS 2048
                     </motion.h1>
+                    {/* اگر خطای عضویت وجود داشت، پیام و دکمه‌های عضویت را نمایش بده */}
+                    {membershipRequired ? (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="w-full max-w-xs"
+                    >
+                        <p className="text-lg text-red-400 mb-4">
+                            {error || "Please join our channels to play."}
+                        </p>
+                        <div className="space-y-3">
+                            {/* **مهم:** این لینک‌ها را با مقادیر واقعی خود از فایل .env یا ecosystem.config.js جایگزین کنید */}
+                            <a
+                                href="https://t.me/MOMIS_studio"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block w-full py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors"
+                            >
+                                📢 Join Channel
+                            </a>
+                            <a
+                                href="https://t.me/MOMIS_community"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block w-full py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors"
+                            >
+                                💬 Join Group
+                            </a>
+                            <button
+                                onClick={authenticateUser}
+                                className="mt-4 w-full py-2 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-colors"
+                            >
+                                ✅ I've Joined, Try Again
+                            </button>
+                        </div>
+                    </motion.div>
+                    ) : (
+                    <>
                     <motion.p
                         className="text-lg text-gray-300 mb-8"
                         initial={{ opacity: 0 }}
@@ -270,11 +323,13 @@ function App() {
                             Login with Telegram
                         </motion.button>
                     )}
+                    </>
+                    )}
 
-                    {error && <p className="text-red-400 mt-4">{error}</p>}
+                    {!membershipRequired && error && <p className="text-red-400 mt-4">{error}</p>}
                 </div>
             ),
-        [view, authLoading, error, authenticateUser]
+        [view, authLoading, error, authenticateUser, membershipRequired]
     );
 
     const lobbyContent = useMemo(
