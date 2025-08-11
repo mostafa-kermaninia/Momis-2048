@@ -162,6 +162,8 @@ const authenticateUser = useCallback(async () => {
             setToken(data.token);
             setUserData(data.user);
             localStorage.setItem("jwtToken", data.token);
+            console.log("Data recieved from back " + data.token);
+            console.log("Data saved in front  " + localStorage.getItem("jwtToken"));
             localStorage.setItem("userData", JSON.stringify(data.user));
             setIsAuthenticated(true);
             setView("lobby");
