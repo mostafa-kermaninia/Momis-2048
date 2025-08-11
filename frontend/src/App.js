@@ -19,11 +19,6 @@ function App() {
     const [authLoading, setAuthLoading] = useState(true);
     const [error, setError] = useState(null);
     const [membershipRequired, setMembershipRequired] = useState(false);
-
-
-    localStorage.removeItem("jwtToken");
-    localStorage.removeItem("userData");
-
     const [userData, setUserData] = useState(() => {
         const saved = localStorage.getItem("userData");
         return saved ? JSON.parse(saved) : null;
@@ -180,19 +175,19 @@ const authenticateUser = useCallback(async () => {
     // ✨ useEffect اصلی با منطق کاملاً بازنویسی شده و بهینه
     useEffect(() => {
         const initApp = async () => {
-            // اولویت اول: آیا توکن و داده معتبر در حافظه وجود دارد؟
-            const storedToken = localStorage.getItem("jwtToken");
-            const storedUserData = localStorage.getItem("userData");
+            // // اولویت اول: آیا توکن و داده معتبر در حافظه وجود دارد؟
+            // const storedToken = localStorage.getItem("jwtToken");
+            // const storedUserData = localStorage.getItem("userData");
 
-            if (storedToken && storedUserData) {
-                console.log("Authentication from localStorage.");
-                setToken(storedToken);
-                setUserData(JSON.parse(storedUserData));
-                setIsAuthenticated(true);
-                setView("lobby");
-                setAuthLoading(false);
-                return; // <-- پایان فرآیند
-            }
+            // if (storedToken && storedUserData) {
+            //     console.log("Authentication from localStorage.");
+            //     setToken(storedToken);
+            //     setUserData(JSON.parse(storedUserData));
+            //     setIsAuthenticated(true);
+            //     setView("lobby");
+            //     setAuthLoading(false);
+            //     return; // <-- پایان فرآیند
+            // }
 
             // اولویت دوم: آیا در محیط تلگرام هستیم و داده برای احراز هویت داریم؟
             if (tg && tg.initData) {
