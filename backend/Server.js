@@ -20,7 +20,7 @@ const allowedOrigins = [
     "https://momis.studio",
     "https://www.momis.studio",
     "https://web.telegram.org",
-    "https://momis2048.momis.studio", // <-- این خط اضافه شود
+    "https://new2048.momis.studio", // <-- این خط اضافه شود
 ];
 const corsOptions = {
     origin: (origin, callback) => {
@@ -365,7 +365,7 @@ app.get("*", (req, res) => {
 });
 
 // --- راه‌اندازی سرور ---
-const PORT = process.env.PORT || 10102;
+const PORT = process.env.PORT || 10103;
 app.listen(PORT, () => {
     logger.info(`Server running on port ${PORT}`);
     logger.info(`Allowed CORS origins: ${allowedOrigins.join(", ")}`);

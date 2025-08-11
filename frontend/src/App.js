@@ -19,7 +19,7 @@ const GameLobby = React.lazy(() => import("./components/GameLobby"));
 const Game2048 = React.lazy(() => import("./components/Game2048"));
 const Leaderboard = React.lazy(() => import("./components/Leaderboard"));
 
-const API_BASE = "https://momis2048.momis.studio/api";
+const API_BASE = "https://new2048.momis.studio/api";
 const tg = window.Telegram?.WebApp;
 
 const FullscreenLoader = ({ text = "Loading..." }) => (

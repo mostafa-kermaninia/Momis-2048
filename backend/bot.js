@@ -12,7 +12,7 @@ if (!token) {
 const REQUIRED_CHANNEL_ID = process.env.REQUIRED_CHANNEL_ID;
 const REQUIRED_GROUP_ID = process.env.REQUIRED_GROUP_ID;
 const GROUP_INVITE_LINK = process.env.GROUP_INVITE_LINK;
-const WEB_APP_URL = "https://momis2048.momis.studio/"; // آدرس بازی
+const WEB_APP_URL = "https://new2048.momis.studio/"; // آدرس بازی
 
 const bot = new TelegramBot(token);
 
@@ -131,7 +131,7 @@ function startListening() {
             const options = {
                 parse_mode: "Markdown",
                 reply_markup: {
-                    inline_keyboard: [[{ text: "🚀 Play Game!", web_app: { url: "https://momis2048.momis.studio"} }]]
+                    inline_keyboard: [[{ text: "🚀 Play Game!", web_app: { url: "https://new2048.momis.studio"} }]]
                 }
             };
             await bot.sendMessage(userId, welcomeText, options);
@@ -156,7 +156,7 @@ function startListening() {
                 const playOptions = {
                     parse_mode: 'Markdown',
                     reply_markup: {
-                        inline_keyboard: [[{ text: '🚀 Play Game!', web_app: { url: "https://momis2048.momis.studio" } }]]
+                        inline_keyboard: [[{ text: '🚀 Play Game!', web_app: { url: "https://new2048.momis.studio" } }]]
                     }
                 };
                 // ویرایش پیام به جای ارسال پیام جدید، تجربه بهتری است
