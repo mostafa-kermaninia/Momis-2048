@@ -197,11 +197,11 @@ const authenticateUser = useCallback(async () => {
                 return; // <-- پایان فرآیند
             }
 
-            // حالت بازگشتی: برای محیط تست خارج از تلگرام
-            console.warn("Running in non-Telegram development mode.");
-            setIsAuthenticated(true);
-            setView("lobby");
-            setAuthLoading(false);
+            // // حالت بازگشتی: برای محیط تست خارج از تلگرام
+            // console.warn("Running in non-Telegram development mode.");
+            // setIsAuthenticated(true);
+            // setView("lobby");
+            // setAuthLoading(false);
         };
 
         if (tg) {
