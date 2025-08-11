@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo ,Suspense } from "react";
 // import Leaderboard from "./components/Leaderboard";
 // import GameLobby from "./components/GameLobby";
 // import Game2048 from "./components/Game2048";
