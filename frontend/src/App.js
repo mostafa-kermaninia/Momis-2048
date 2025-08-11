@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo ,Suspense } from "react";
+import React, {
+    useState,
+    useEffect,
+    useCallback,
+    useMemo,
+    Suspense,
+} from "react";
 // import Leaderboard from "./components/Leaderboard";
 // import GameLobby from "./components/GameLobby";
 // import Game2048 from "./components/Game2048";
@@ -415,13 +421,13 @@ function App() {
 
     return (
         <div className="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-momis-blue to-momis-purple text-white p-4 font-[Vazirmatn]">
-            {error && (
-                <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-md shadow-lg z-50">
-                    {error}
-                </div>
-            )}
+            {error &&
+                !membershipRequired && ( // <-- خطا فقط زمانی نمایش داده می‌شود که مربوط به عضویت نباشد
+                    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-md shadow-lg z-50">
+                        {error}
+                    </div>
+                )}
 
-            {/* ✅ مرحله ۱: اضافه کردن Suspense برای مدیریت بارگذاری تنبل (Lazy Loading) */}
             <Suspense fallback={<FullscreenLoader />}>
                 <AnimatePresence mode="wait">
                     <motion.div
@@ -432,7 +438,7 @@ function App() {
                         transition={{ duration: 0.3 }}
                         className="w-full flex flex-col items-center justify-center"
                     >
-                        {/* ✅ مرحله ۲: جایگزینی متغیرهای useMemo با رندر مستقیم و شرطی */}
+                        {/* ===== نمایش کامپوننت‌ها به صورت مستقیم ===== */}
 
                         {view === "loading" && <FullscreenLoader />}
 
@@ -446,24 +452,71 @@ function App() {
                                 >
                                     MOMIS 2048
                                 </motion.h1>
-                                <motion.p
-                                    className="text-lg text-gray-300 mb-8"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ duration: 0.5, delay: 0.2 }}
-                                >
-                                    Ready to challenge your mind?
-                                </motion.p>
-                                {/* authLoading state دیگر وجود ندارد، چون منطق تغییر کرده */}
-                                {/* این دکمه برای حالتی است که احراز هویت خودکار با تلگرام شکست بخورد */}
-                                <motion.button
-                                    onClick={authenticateUser}
-                                    className="px-8 py-3 bg-blue-600 text-white rounded-xl text-xl font-bold shadow-lg hover:bg-blue-700 transition-all duration-300"
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
-                                    Login with Telegram
-                                </motion.button>
+
+                                {membershipRequired ? (
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className="w-full max-w-xs"
+                                    >
+                                        <p className="text-lg text-red-400 mb-4">
+                                            {error ||
+                                                "Please join our channels to play."}
+                                        </p>
+                                        <div className="space-y-3">
+                                            <a
+                                                href="https://t.me/MOMIS_studio"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="block w-full py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors"
+                                            >
+                                                📢 Join Channel
+                                            </a>
+                                            <a
+                                                href="https://t.me/MOMIS_community"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="block w-full py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors"
+                                            >
+                                                💬 Join Group
+                                            </a>
+                                            <button
+                                                onClick={authenticateUser}
+                                                className="mt-4 w-full py-2 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-colors"
+                                            >
+                                                ✅ I've Joined, Try Again
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                ) : (
+                                    <>
+                                        <motion.p
+                                            className="text-lg text-gray-300 mb-8"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{
+                                                duration: 0.5,
+                                                delay: 0.2,
+                                            }}
+                                        >
+                                            Ready to challenge your mind?
+                                        </motion.p>
+                                        {authLoading ? (
+                                            <p className="text-lg text-gray-400 animate-pulse">
+                                                Connecting...
+                                            </p>
+                                        ) : (
+                                            <motion.button
+                                                onClick={authenticateUser}
+                                                className="px-8 py-3 bg-blue-600 text-white rounded-xl text-xl font-bold shadow-lg hover:bg-blue-700 transition-all duration-300"
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                            >
+                                                Login with Telegram
+                                            </motion.button>
+                                        )}
+                                    </>
+                                )}
                             </div>
                         )}
 
@@ -480,13 +533,15 @@ function App() {
                         )}
 
                         {view === "game" && (
-                            <Game2048
-                                onGameOver={handleGameOver}
-                                onGoHome={handleGoHome}
-                                initialBestScore={bestScore}
-                                isMuted={isMuted}
-                                onToggleMute={handleToggleMute}
-                            />
+                            <div className="flex flex-col items-center gap-6 w-full max-w-md text-center">
+                                <Game2048
+                                    onGameOver={handleGameOver}
+                                    onGoHome={handleGoHome}
+                                    initialBestScore={bestScore}
+                                    isMuted={isMuted}
+                                    onToggleMute={handleToggleMute}
+                                />
+                            </div>
                         )}
 
                         {view === "board" && (
