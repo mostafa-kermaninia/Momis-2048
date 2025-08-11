@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import Leaderboard from "./components/Leaderboard";
-import GameLobby from "./components/GameLobby";
-import Game2048 from "./components/Game2048";
+// import Leaderboard from "./components/Leaderboard";
+// import GameLobby from "./components/GameLobby";
+// import Game2048 from "./components/Game2048";
 import DefaultAvatar from "./assets/default-avatar.png"; // مسیر را چک کنید
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -9,12 +9,22 @@ import {
     toggleMute as toggleSoundManagerMute,
 } from "./utils/SoundManager"; // <-- این خط را اضافه کنید
 
+const GameLobby = React.lazy(() => import("./components/GameLobby"));
+const Game2048 = React.lazy(() => import("./components/Game2048"));
+const Leaderboard = React.lazy(() => import("./components/Leaderboard"));
+
 const API_BASE = "https://momis2048.momis.studio/api";
 const tg = window.Telegram?.WebApp;
 
+const FullscreenLoader = ({ text = "Loading..." }) => (
+    <div className="flex items-center justify-center h-screen w-screen">
+        <div className="text-white text-xl animate-pulse">{text}</div>
+    </div>
+);
+
 function App() {
     const [bestScore, setBestScore] = useState(0); // ✨ State جدید
-    const [view, setView] = useState("auth");
+    const [view, setView] = useState("loading");
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [authLoading, setAuthLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -128,7 +138,7 @@ function App() {
         [isAuthenticated, token, fetchBestScore]
     );
 
-const authenticateUser = useCallback(async () => {
+    const authenticateUser = useCallback(async () => {
         try {
             setAuthLoading(true);
             setError(null);
@@ -158,7 +168,9 @@ const authenticateUser = useCallback(async () => {
             setUserData(data.user);
             localStorage.setItem("jwtToken", data.token);
             console.log("Data recieved from back " + data.token);
-            console.log("Data saved in front  " + localStorage.getItem("jwtToken"));
+            console.log(
+                "Data saved in front  " + localStorage.getItem("jwtToken")
+            );
             localStorage.setItem("userData", JSON.stringify(data.user));
             setIsAuthenticated(true);
             setView("lobby");
@@ -175,42 +187,40 @@ const authenticateUser = useCallback(async () => {
     // ✨ useEffect اصلی با منطق کاملاً بازنویسی شده و بهینه
     useEffect(() => {
         const initApp = async () => {
-            // // اولویت اول: آیا توکن و داده معتبر در حافظه وجود دارد؟
-            // const storedToken = localStorage.getItem("jwtToken");
-            // const storedUserData = localStorage.getItem("userData");
+            console.log("App initialization started...");
+            const storedToken = localStorage.getItem("jwtToken");
+            const storedUserData = localStorage.getItem("userData");
 
-            // if (storedToken && storedUserData) {
-            //     console.log("Authentication from localStorage.");
-            //     setToken(storedToken);
-            //     setUserData(JSON.parse(storedUserData));
-            //     setIsAuthenticated(true);
-            //     setView("lobby");
-            //     setAuthLoading(false);
-            //     return; // <-- پایان فرآیند
-            // }
-
-            // اولویت دوم: آیا در محیط تلگرام هستیم و داده برای احراز هویت داریم؟
-            if (tg && tg.initData) {
-                console.log("Authenticating with Telegram data...");
-                // تابع authenticateUser فقط همین یک بار فراخوانی می‌شود
-                await authenticateUser();
-                return; // <-- پایان فرآیند
+            if (storedToken && storedUserData) {
+                console.log("Found session in localStorage.");
+                setToken(storedToken);
+                setUserData(JSON.parse(storedUserData));
+                setIsAuthenticated(true);
+                setView("lobby"); // <-- مستقیم به لابی می‌رود
+                return;
             }
 
-            // // حالت بازگشتی: برای محیط تست خارج از تلگرام
-            // console.warn("Running in non-Telegram development mode.");
-            // setIsAuthenticated(true);
-            // setView("lobby");
-            // setAuthLoading(false);
+            if (tg && tg.initData) {
+                console.log("Telegram initData found. Authenticating...");
+                await authenticateUser(); // authenticateUser خودش view را به 'lobby' یا 'auth' تغییر می‌دهد
+                return;
+            }
+
+            console.warn("Running in development mode.");
+            // در حالت تست، مستقیم به لابی برو
+            setIsAuthenticated(true);
+            setView("lobby");
         };
 
-        if (tg) {
-            tg.ready();
-            tg.expand();
-        }
-
-        initApp();
-    }, [authenticateUser]); // فقط به authenticateUser وابسته است
+        // با یک تاخیر کوتاه، به تلگرام و مرورگر فرصت می‌دهیم آماده شوند
+        setTimeout(() => {
+            if (tg) {
+                tg.ready();
+                tg.expand();
+            }
+            initApp();
+        }, 100); // 100 میلی‌ثانیه تاخیر
+    }, [authenticateUser]); // این هوک فقط یک بار اجرا می‌شود
 
     // ✅ این هوک جدید را اضافه کنید
     useEffect(() => {
@@ -261,69 +271,71 @@ const authenticateUser = useCallback(async () => {
                     </motion.h1>
                     {/* اگر خطای عضویت وجود داشت، پیام و دکمه‌های عضویت را نمایش بده */}
                     {membershipRequired ? (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="w-full max-w-xs"
-                    >
-                        <p className="text-lg text-red-400 mb-4">
-                            {error || "Please join our channels to play."}
-                        </p>
-                        <div className="space-y-3">
-                            {/* **مهم:** این لینک‌ها را با مقادیر واقعی خود از فایل .env یا ecosystem.config.js جایگزین کنید */}
-                            <a
-                                href="https://t.me/MOMIS_studio"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="block w-full py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors"
-                            >
-                                📢 Join Channel
-                            </a>
-                            <a
-                                href="https://t.me/MOMIS_community"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="block w-full py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors"
-                            >
-                                💬 Join Group
-                            </a>
-                            <button
-                                onClick={authenticateUser}
-                                className="mt-4 w-full py-2 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-colors"
-                            >
-                                ✅ I've Joined, Try Again
-                            </button>
-                        </div>
-                    </motion.div>
-                    ) : (
-                    <>
-                    <motion.p
-                        className="text-lg text-gray-300 mb-8"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
-                    >
-                        Ready to challenge your mind?
-                    </motion.p>
-
-                    {authLoading ? (
-                        <p className="text-lg text-gray-400 animate-pulse">
-                            Connecting...
-                        </p>
-                    ) : (
-                        <motion.button
-                            onClick={authenticateUser}
-                            className="px-8 py-3 bg-blue-600 text-white rounded-xl text-xl font-bold shadow-lg hover:bg-blue-700 transition-all duration-300"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="w-full max-w-xs"
                         >
-                            Login with Telegram
-                        </motion.button>
-                    )}
-                    </>
+                            <p className="text-lg text-red-400 mb-4">
+                                {error || "Please join our channels to play."}
+                            </p>
+                            <div className="space-y-3">
+                                {/* **مهم:** این لینک‌ها را با مقادیر واقعی خود از فایل .env یا ecosystem.config.js جایگزین کنید */}
+                                <a
+                                    href="https://t.me/MOMIS_studio"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block w-full py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors"
+                                >
+                                    📢 Join Channel
+                                </a>
+                                <a
+                                    href="https://t.me/MOMIS_community"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block w-full py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors"
+                                >
+                                    💬 Join Group
+                                </a>
+                                <button
+                                    onClick={authenticateUser}
+                                    className="mt-4 w-full py-2 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-colors"
+                                >
+                                    ✅ I've Joined, Try Again
+                                </button>
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <>
+                            <motion.p
+                                className="text-lg text-gray-300 mb-8"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.5, delay: 0.2 }}
+                            >
+                                Ready to challenge your mind?
+                            </motion.p>
+
+                            {authLoading ? (
+                                <p className="text-lg text-gray-400 animate-pulse">
+                                    Connecting...
+                                </p>
+                            ) : (
+                                <motion.button
+                                    onClick={authenticateUser}
+                                    className="px-8 py-3 bg-blue-600 text-white rounded-xl text-xl font-bold shadow-lg hover:bg-blue-700 transition-all duration-300"
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    Login with Telegram
+                                </motion.button>
+                            )}
+                        </>
                     )}
 
-                    {!membershipRequired && error && <p className="text-red-400 mt-4">{error}</p>}
+                    {!membershipRequired && error && (
+                        <p className="text-red-400 mt-4">{error}</p>
+                    )}
                 </div>
             ),
         [view, authLoading, error, authenticateUser, membershipRequired]
@@ -408,21 +420,91 @@ const authenticateUser = useCallback(async () => {
                     {error}
                 </div>
             )}
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={view} // کلید انیمیشن، نام view فعلی است
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                    className="w-full flex flex-col items-center justify-center"
-                >
-                    {view === "auth" && authContent}
-                    {view === "lobby" && lobbyContent}
-                    {view === "game" && gameContent}
-                    {view === "board" && leaderboardContent}
-                </motion.div>
-            </AnimatePresence>
+
+            {/* ✅ مرحله ۱: اضافه کردن Suspense برای مدیریت بارگذاری تنبل (Lazy Loading) */}
+            <Suspense fallback={<FullscreenLoader />}>
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={view}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className="w-full flex flex-col items-center justify-center"
+                    >
+                        {/* ✅ مرحله ۲: جایگزینی متغیرهای useMemo با رندر مستقیم و شرطی */}
+
+                        {view === "loading" && <FullscreenLoader />}
+
+                        {view === "auth" && (
+                            <div className="flex flex-col items-center justify-center text-center h-screen px-4">
+                                <motion.h1
+                                    className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500"
+                                    initial={{ opacity: 0, y: -20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5 }}
+                                >
+                                    MOMIS 2048
+                                </motion.h1>
+                                <motion.p
+                                    className="text-lg text-gray-300 mb-8"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.5, delay: 0.2 }}
+                                >
+                                    Ready to challenge your mind?
+                                </motion.p>
+                                {/* authLoading state دیگر وجود ندارد، چون منطق تغییر کرده */}
+                                {/* این دکمه برای حالتی است که احراز هویت خودکار با تلگرام شکست بخورد */}
+                                <motion.button
+                                    onClick={authenticateUser}
+                                    className="px-8 py-3 bg-blue-600 text-white rounded-xl text-xl font-bold shadow-lg hover:bg-blue-700 transition-all duration-300"
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    Login with Telegram
+                                </motion.button>
+                            </div>
+                        )}
+
+                        {view === "lobby" && (
+                            <GameLobby
+                                onGameStart={startGame}
+                                onShowLeaderboard={handleShowLeaderboard}
+                                userData={userData}
+                                onLogout={handleLogout}
+                                onImageError={handleImageError}
+                                isMuted={isMuted}
+                                onToggleMute={handleToggleMute}
+                            />
+                        )}
+
+                        {view === "game" && (
+                            <Game2048
+                                onGameOver={handleGameOver}
+                                onGoHome={handleGoHome}
+                                initialBestScore={bestScore}
+                                isMuted={isMuted}
+                                onToggleMute={handleToggleMute}
+                            />
+                        )}
+
+                        {view === "board" && (
+                            <Leaderboard
+                                key={leaderboardKey}
+                                API_BASE={API_BASE}
+                                finalScore={finalScore}
+                                onReplay={startGame}
+                                onHome={handleGoHome}
+                                userData={userData}
+                                eventId={currentGameEventId}
+                                isMuted={isMuted}
+                                onToggleMute={handleToggleMute}
+                            />
+                        )}
+                    </motion.div>
+                </AnimatePresence>
+            </Suspense>
 
             <img
                 src={`${process.env.PUBLIC_URL}/teamlogo.png`}
