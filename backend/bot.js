@@ -125,6 +125,7 @@ function startListening() {
                 
                 return await bot.sendMessage(userId, message, options);
             }
+            
 
             // اگر کاربر از قبل عضو بود، پیام خوش‌آمدگویی را ارسال کن
             const welcomeText = `🎉 Welcome, *${firstName}*!\n\n Click the button below to play **2048**!`;
