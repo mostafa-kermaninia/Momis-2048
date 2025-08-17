@@ -241,7 +241,7 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
         const serverCalculatedScore = simulateGameAndGetScore(gameSessions[userId]);
         
         const timePerMove = (Date.now() - playersTimes[userId]) / gameSessions[userId].moves.length;
-        // console.log('Avg move time = ' + timePerMove);
+        console.log('Avg move time = ' + timePerMove);
         delete playersTimes[userId];
         delete gameSessions[userId];
 
