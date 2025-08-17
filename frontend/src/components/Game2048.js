@@ -102,6 +102,7 @@ const move = (g, d) => {
 // The Component with the final fix
 const Game2048 = ({
     onGameOver,
+    onSaveMoves,
     onGoHome,
     initialBestScore,
     isMuted,
@@ -178,11 +179,22 @@ const Game2048 = ({
                     3: "down",
                 };
                 const newMove = directionMap[direction];
-
+                
+                if (moves.length() >= 10){
+                    onSaveMoves(updatedScore, {
+                        moves: [...moves, newMove],
+                        newTiles: [...allNewTiles, newTileData].filter(Boolean),
+                    });
+                }
+                setMoves([]);
+                setAllNewTiles([]);
+                
                 setMoves((prevMoves) => [...prevMoves, newMove]);
                 setAllNewTiles((prevTiles) =>
                     [...prevTiles, newTileData].filter(Boolean)
                 );
+
+
 
                 if (!movesAvailable(gridWithNewTile)) {
                     if (!isMuted) playSound("gameOver"); // <-- صدای پایان بازی
@@ -190,8 +202,8 @@ const Game2048 = ({
                     setGameOver(true);
                     // ✨ Construct the final scenario object on the fly with the latest data
                     onGameOver(updatedScore, {
-                        moves: [...moves, newMove],
-                        newTiles: [...allNewTiles, newTileData].filter(Boolean),
+                        moves: moves,
+                        newTiles: allNewTiles,
                     });
                 }
             }
@@ -202,6 +214,7 @@ const Game2048 = ({
             bestScore,
             isGameOver,
             onGameOver,
+            onSaveMoves,
             moves,
             allNewTiles,
             isMuted,

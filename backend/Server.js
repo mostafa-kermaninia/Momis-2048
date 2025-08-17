@@ -15,6 +15,8 @@ const { User, Score, sequelize } = require("./DataBase/models");
 const app = express();
 app.use(express.json());
 
+gameSessions = {};
+
 // --- پیکربندی CORS (بدون تغییر) ---
 const allowedOrigins = [
     "https://momis.studio",
@@ -121,6 +123,59 @@ app.post("/api/telegram-auth", async (req, res) => {
     }
 });
 
+app.post("/api/saveScenario", authenticateToken, async (req, res) => {
+    // مرحله ۱: دریافت آبجکت gameScenario
+    const { gameScenario, eventId } = req.body;
+    const userId = req.user.userId;
+
+    // مرحله ۲: اعتبار سنجی ساختار جدید داده
+    if (
+        !gameScenario ||
+        !Array.isArray(gameScenario.moves) ||
+        !Array.isArray(gameScenario.newTiles)
+    ) {
+        logger.info(
+            `[Security] Invalid data format (gameScenario is malformed) for user ${userId}`
+        );
+        return res
+            .status(400)
+            .json({ status: "error", message: "Invalid game data format." });
+    }
+
+    const { moves, newTiles } = gameScenario;
+
+    if (!gameSessions[userId]) {
+        gameSessions[userId] = gameScenario;
+    } else {
+        const prevMoves = gameSessions[userId].moves;
+        const prevNewTiles = gameSessions[userId].newTiles;
+
+        gameSessions[userId] = {
+            moves: [...prevMoves, ...moves],
+            newTiles: [...prevNewTiles, ...newTiles],
+        };
+    }
+
+    if (moves.length === 0) {
+        logger.info(`[Security] No moves received for user ${userId}`);
+        return res
+            .status(400)
+            .json({ status: "error", message: "Game cannot have zero moves." });
+    }
+
+    logger.info(
+        `[Saved moves] Received scenario with ${moves.length} moves and ${
+            newTiles.length
+        } new tiles for user: ${userId} in event: ${eventId || "Free Play"}`
+    );
+
+    res.status(200).json({
+            status: "success",
+            message: "Moves Saved successfully.",
+        });
+
+});
+
 app.post("/api/gameOver", authenticateToken, async (req, res) => {
     // مرحله ۱: دریافت آبجکت gameScenario
     const { gameScenario, eventId } = req.body;
@@ -142,7 +197,7 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
 
     const { moves, newTiles } = gameScenario;
 
-    if (moves.length === 0) {
+    if (moves.length === 0 && !gameSessions[userId]) {
         logger.info(`[Security] No moves received for user ${userId}`);
         return res
             .status(400)
@@ -155,11 +210,25 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
         } new tiles for user: ${userId} in event: ${eventId || "Free Play"}`
     );
 
+    if (!gameSessions[userId]) {
+        gameSessions[userId] = gameScenario;
+    } else {
+        const prevMoves = gameSessions[userId].moves;
+        const prevNewTiles = gameSessions[userId].newTiles;
+
+        gameSessions[userId] = {
+            moves: [...prevMoves, ...moves],
+            newTiles: [...prevNewTiles, ...newTiles],
+        };
+    }
+
     try {
 
         // مرحله ۳: بازی را در سرور با سناریوی کامل شبیه‌سازی می‌کنیم
         // ❗️ تابع simulateGameAndGetScore باید بتواند gameScenario را بپذیرد
-        const serverCalculatedScore = simulateGameAndGetScore(gameScenario);
+        const serverCalculatedScore = simulateGameAndGetScore(gameSessions[userId]);
+        
+        delete gameSessions[userId];
 
         logger.info(
             `[gameOver] Server-validated score: ${serverCalculatedScore} for user: ${userId}`
@@ -177,6 +246,8 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
                 eventId || "Free Play"
             }`
         );
+
+
 
         res.status(201).json({
             status: "success",

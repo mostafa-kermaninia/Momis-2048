@@ -96,6 +96,40 @@ function App() {
         [token, currentGameEventId]
     );
 
+    const saveScenario = useCallback(
+        async (score, scenario) => {
+            // scenario حالا شامل moves و newTiles است
+            console.log(
+                `[App.js] Saving moves. Sending scenario with ${scenario.moves.length} moves.`
+            );
+
+            if (token) {
+                try {
+                    // ✅ این بخش را اصلاح می‌کنیم
+                    const body = {
+                        // کل آبجکت scenario را تحت کلید gameScenario ارسال می‌کنیم
+                        gameScenario: scenario,
+                        eventId: currentGameEventId,
+                    };
+
+                    // هیچ تغییر دیگری در fetch لازم نیست
+                    await fetch(`${API_BASE}/saveScenario`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify(body),
+                    });
+                } catch (err) {
+                    console.error("Failed to save moves:", err);
+                    setError("Failed to save moves");
+                }
+            }
+        },
+        [token, currentGameEventId]
+    );
+
     const fetchBestScore = useCallback(
         async (eventId, currentToken) => {
             const eventParam = eventId || "freeplay";
@@ -375,6 +409,7 @@ function App() {
                     {/* ✨ پاس دادن هر دو تابع */}
                     <Game2048
                         onGameOver={handleGameOver}
+                        onSaveMoves={saveScenario}
                         onGoHome={handleGoHome}
                         eventId={currentGameEventId}
                         // ✨ بهترین امتیاز را به عنوان prop به کامپوننت بازی پاس می‌دهیم
