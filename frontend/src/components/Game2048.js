@@ -180,7 +180,7 @@ const Game2048 = ({
                 const newTilesArray = [...allNewTiles, newTileData].filter(Boolean);
 
                 // ✅ مرحله ۲: شرط را روی آرایه‌ی جدید و به روز بررسی کنید.
-                if (newMovesArray.length >= 10) {
+                if (newMovesArray.length >= 2000) {
                     if (typeof onSaveMoves === 'function') {
                         onSaveMoves(updatedScore, {
                             moves: newMovesArray,
