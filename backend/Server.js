@@ -251,7 +251,7 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
 
         if (serverCalculatedScore === -1 || timePerMove < 350) {
             logger.info(`[CHEAT DETECTED]: skip saving score for: ${userId}`);
-            throw new Error("Cheat detected!"); 
+            throw new Error("Cheat detected!");
         }
 
         // مرحله ۴: امتیاز محاسبه شده توسط سرور را در دیتابیس ذخیره می‌کنیم

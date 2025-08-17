@@ -95,11 +95,11 @@ function simulateGameAndGetScore(gameScenario) {
     for (const moveString of moves) {
         const direction = directionMap[moveString];
         if (typeof direction === "undefined") continue;
-        done_moves++;
         
         const { newGrid, score, moved } = move(grid, direction);
-
+        
         if (moved) {
+            done_moves++;
             totalScore += score;
             grid = newGrid;
 
