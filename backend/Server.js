@@ -204,24 +204,24 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
             .json({ status: "error", message: "Game cannot have zero moves." });
     }
 
-    logger.info(
-        `[gameOver] Received scenario with ${moves.length} moves and ${
-            newTiles.length
-        } new tiles for user: ${userId} in event: ${eventId || "Free Play"}`
-    );
-
+    
     if (!gameSessions[userId]) {
         gameSessions[userId] = gameScenario;
     } else {
         const prevMoves = gameSessions[userId].moves;
         const prevNewTiles = gameSessions[userId].newTiles;
-
+        
         gameSessions[userId] = {
             moves: [...prevMoves, ...moves],
             newTiles: [...prevNewTiles, ...newTiles],
         };
     }
-
+    logger.info(
+        `[gameOver] Received scenario with ${gameSessions[userId].moves.length} moves and ${
+            gameSessions[userId].newTiles.length
+        } new tiles for user: ${userId} in event: ${eventId || "Free Play"}`
+    );
+    
     try {
 
         // مرحله ۳: بازی را در سرور با سناریوی کامل شبیه‌سازی می‌کنیم
