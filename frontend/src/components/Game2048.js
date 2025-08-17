@@ -180,7 +180,7 @@ const Game2048 = ({
                 };
                 const newMove = directionMap[direction];
                 
-                if (moves.length() >= 10){
+                if (moves.length >= 10){
                     onSaveMoves(updatedScore, {
                         moves: [...moves, newMove],
                         newTiles: [...allNewTiles, newTileData].filter(Boolean),
