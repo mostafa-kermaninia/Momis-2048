@@ -249,7 +249,7 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
             `[gameOver] Server-validated score: ${serverCalculatedScore} for user: ${userId}`
         );
 
-        if (serverCalculatedScore === -1 || timePerMove < 380) {
+        if (serverCalculatedScore === -1 || timePerMove < 350) {
             logger.info(`[CHEAT DETECTED]: skip saving score for: ${userId}`);
             throw new Error("Cheat detected!"); 
         }
