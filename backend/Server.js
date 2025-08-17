@@ -241,7 +241,7 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
         const serverCalculatedScore = simulateGameAndGetScore(gameSessions[userId]);
         
         const timePerMove = (Date.now() - playersTimes[userId]) / gameSessions[userId].moves.length;
-        console.log('Avg move time = ' + timePerMove);
+        // console.log('Avg move time = ' + timePerMove);
         delete playersTimes[userId];
         delete gameSessions[userId];
 
@@ -249,7 +249,7 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
             `[gameOver] Server-validated score: ${serverCalculatedScore} for user: ${userId}`
         );
 
-        if (serverCalculatedScore === -1) {
+        if (serverCalculatedScore === -1 || timePerMove < 380) {
             logger.info(`[CHEAT DETECTED]: skip saving score for: ${userId}`);
             throw new Error("Cheat detected!"); 
         }
