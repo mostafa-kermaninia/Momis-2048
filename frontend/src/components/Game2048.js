@@ -151,17 +151,16 @@ const Game2048 = ({
             const { newGrid, score: newScore, moved } = move(grid, direction);
 
             if (moved) {
+                // بخش مربوط به صدا و نمره
                 if (!isMuted) {
-                    // اگر امتیازی اضافه شده، یعنی ادغام رخ داده
                     if (newScore > 0) {
                         playSound("merge");
                     } else {
-                        // در غیر این صورت فقط حرکت بوده
                         playSound("move");
                     }
                 }
-                const { grid: gridWithNewTile, newTileData } =
-                    addRandomTile(newGrid);
+                
+                const { grid: gridWithNewTile, newTileData } = addRandomTile(newGrid);
                 const updatedScore = score + newScore;
 
                 setGrid(gridWithNewTile);
@@ -171,55 +170,48 @@ const Game2048 = ({
                     setBestScore(updatedScore);
                 }
 
-                // ✨ Use functional updates to prevent stale state
                 const directionMap = {
-                    0: "left",
-                    1: "up",
-                    2: "right",
-                    3: "down",
+                    0: "left", 1: "up", 2: "right", 3: "down",
                 };
                 const newMove = directionMap[direction];
                 
-                console.log(moves.length);
-                if (moves.length >= 10){
-                    onSaveMoves(updatedScore, {
-                        moves: [...moves, newMove],
-                        newTiles: [...allNewTiles, newTileData].filter(Boolean),
-                    });
+                // ✅ مرحله ۱: آرایه‌های جدید را به صورت محلی بسازید.
+                const newMovesArray = [...moves, newMove];
+                const newTilesArray = [...allNewTiles, newTileData].filter(Boolean);
+
+                // ✅ مرحله ۲: شرط را روی آرایه‌ی جدید و به روز بررسی کنید.
+                if (newMovesArray.length >= 10) {
+                    if (typeof onSaveMoves === 'function') {
+                        onSaveMoves(updatedScore, {
+                            moves: newMovesArray,
+                            newTiles: newTilesArray,
+                        });
+                    }
+                    // ✅ مرحله ۳: state را پس از ارسال داده‌ها ریست کنید.
                     setMoves([]);
                     setAllNewTiles([]);
+                } else {
+                    // ✅ مرحله ۴: در غیر این صورت، state را با آرایه‌های جدید به‌روز کنید.
+                    setMoves(newMovesArray);
+                    setAllNewTiles(newTilesArray);
                 }
-                
-                setMoves((prevMoves) => [...prevMoves, newMove]);
-                setAllNewTiles((prevTiles) =>
-                    [...prevTiles, newTileData].filter(Boolean)
-                );
-
-
 
                 if (!movesAvailable(gridWithNewTile)) {
-                    if (!isMuted) playSound("gameOver"); // <-- صدای پایان بازی
+                    if (!isMuted) playSound("gameOver");
 
                     setGameOver(true);
-                    // ✨ Construct the final scenario object on the fly with the latest data
-                    onGameOver(updatedScore, {
-                        moves: [...moves],
-                        newTiles: [...allNewTiles],
-                    });
+                    // ✅ از آرایه‌های محلی جدید برای ارسال داده‌های نهایی استفاده کنید.
+                    if (typeof onGameOver === 'function') {
+                        onGameOver(updatedScore, {
+                            moves: newMovesArray,
+                            newTiles: newTilesArray,
+                        });
+                    }
                 }
             }
         },
-        [
-            grid,
-            score,
-            bestScore,
-            isGameOver,
-            onGameOver,
-            onSaveMoves,
-            moves,
-            allNewTiles,
-            isMuted,
-        ]
+        // ✅ مطمئن شوید که onSaveMoves در آرایه‌ی وابستگی‌ها قرار دارد.
+        [grid, score, bestScore, isGameOver, onGameOver, onSaveMoves, moves, allNewTiles, isMuted]
     );
 
     const handleKeyDown = useCallback(
