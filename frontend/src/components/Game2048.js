@@ -180,6 +180,7 @@ const Game2048 = ({
                 };
                 const newMove = directionMap[direction];
                 
+                console.log(moves.length);
                 if (moves.length >= 10){
                     onSaveMoves(updatedScore, {
                         moves: [...moves, newMove],
@@ -202,8 +203,8 @@ const Game2048 = ({
                     setGameOver(true);
                     // ✨ Construct the final scenario object on the fly with the latest data
                     onGameOver(updatedScore, {
-                        moves: moves,
-                        newTiles: allNewTiles,
+                        moves: [...moves],
+                        newTiles: [...allNewTiles],
                     });
                 }
             }
