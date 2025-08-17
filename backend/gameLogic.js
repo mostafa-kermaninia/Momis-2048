@@ -90,12 +90,13 @@ function simulateGameAndGetScore(gameScenario) {
             tileIndex++;
         }
     }
-
+    var done_moves = 0;
     // مرحله ۲: اجرای حرکات
     for (const moveString of moves) {
         const direction = directionMap[moveString];
         if (typeof direction === "undefined") continue;
-
+        done_moves++;
+        
         const { newGrid, score, moved } = move(grid, direction);
 
         if (moved) {
@@ -119,6 +120,8 @@ function simulateGameAndGetScore(gameScenario) {
             }
         }
     }
+    if (done_moves !== moves.length)
+        return -1;
 
     return totalScore;
 }

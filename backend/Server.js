@@ -234,6 +234,11 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
             `[gameOver] Server-validated score: ${serverCalculatedScore} for user: ${userId}`
         );
 
+        if (serverCalculatedScore === -1) {
+            logger.info(`[CHEAT DETECTED]: skip saving score for: ${userId}`);
+            throw new Error("Cheat detected!"); 
+        }
+
         // مرحله ۴: امتیاز محاسبه شده توسط سرور را در دیتابیس ذخیره می‌کنیم
         await Score.create({
             score: serverCalculatedScore,
