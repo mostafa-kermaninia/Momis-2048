@@ -16,6 +16,7 @@ const app = express();
 app.use(express.json());
 
 gameSessions = {};
+playersTimes = {};
 
 // --- پیکربندی CORS (بدون تغییر) ---
 const allowedOrigins = [
@@ -121,6 +122,17 @@ app.post("/api/telegram-auth", async (req, res) => {
             message: "Authentication failed",
         });
     }
+});
+
+app.post("/api/start-game", authenticateToken, (req, res) => {
+    const { eventId } = req.body;
+    const userId = req.user.userId;
+    logger.info(`[start-game] User ${userId} is starting a new game.`);
+
+    playersTimes[userId] = Date.now();
+
+    const videoUrl = `/sequence.webm?sequence=${JSON.stringify(userId)}`;
+    res.json({ status: "success"});
 });
 
 app.post("/api/saveScenario", authenticateToken, async (req, res) => {
@@ -238,6 +250,8 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
             logger.info(`[CHEAT DETECTED]: skip saving score for: ${userId}`);
             throw new Error("Cheat detected!"); 
         }
+        const timePerMove = gameSessions[userId].moves.length / (Date.now() - playersTimes[userId]);
+        console.log('Avg move time = ' + timePerMove);
 
         // مرحله ۴: امتیاز محاسبه شده توسط سرور را در دیتابیس ذخیره می‌کنیم
         await Score.create({

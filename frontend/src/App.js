@@ -161,7 +161,7 @@ function App() {
     );
 
     const startGame = useCallback(
-        (eventId) => {
+        async (eventId) => {
             console.log(`[App.js] Starting Game for event: ${eventId}`);
             setCurrentGameEventId(eventId);
             fetchBestScore(eventId, token);
@@ -170,6 +170,25 @@ function App() {
                 setError("Please authenticate first");
                 setView("auth");
                 return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/start-game`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ eventId }), // ارسال eventId
+                });
+
+                if (!response.ok) {
+                throw new Error("Could not start the game.");
+                }
+            } catch (err) {
+                console.error("Error starting game:", err);
+                setError("Failed to start a new game.");
+                setView("lobby");
             }
 
             setFinalScore(null);
