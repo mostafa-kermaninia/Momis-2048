@@ -186,9 +186,9 @@ const Game2048 = ({
                         moves: [...moves, newMove],
                         newTiles: [...allNewTiles, newTileData].filter(Boolean),
                     });
+                    setMoves([]);
+                    setAllNewTiles([]);
                 }
-                setMoves([]);
-                setAllNewTiles([]);
                 
                 setMoves((prevMoves) => [...prevMoves, newMove]);
                 setAllNewTiles((prevTiles) =>
