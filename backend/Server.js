@@ -240,6 +240,9 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
         // ❗️ تابع simulateGameAndGetScore باید بتواند gameScenario را بپذیرد
         const serverCalculatedScore = simulateGameAndGetScore(gameSessions[userId]);
         
+        const timePerMove = (Date.now() - playersTimes[userId]) / gameSessions[userId].moves.length;
+        console.log('Avg move time = ' + timePerMove);
+        delete playersTimes[userId];
         delete gameSessions[userId];
 
         logger.info(
@@ -250,8 +253,6 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
             logger.info(`[CHEAT DETECTED]: skip saving score for: ${userId}`);
             throw new Error("Cheat detected!"); 
         }
-        const timePerMove = (Date.now() - playersTimes[userId]) / gameSessions[userId].moves.length;
-        console.log('Avg move time = ' + timePerMove);
 
         // مرحله ۴: امتیاز محاسبه شده توسط سرور را در دیتابیس ذخیره می‌کنیم
         await Score.create({
