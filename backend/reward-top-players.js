@@ -100,7 +100,7 @@ async function findAndRewardTopPlayers(eventId) {
         }
         
         // Step 4: Send consolation messages to everyone else
-        for (const participant of allParticipants) {
+        for (const participant of uniqueParticipants) {
             const userId = participant.userTelegramId;
             // Check if this user is NOT in the winners set
             if (!winnerIds.has(userId)) {
