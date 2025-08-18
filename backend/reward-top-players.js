@@ -28,8 +28,8 @@ async function findAndRewardTopPlayers(eventId) {
             raw: true,
         });
 
-        if (allParticipants.length === 0) {
-            logger.info(`No participants found for event ${eventId}. Ending process.`);
+        if (allScoresSorted.length === 0) {
+            logger.info(`No scores found for event ${eventId}. Ending process.`);
             return;
         }
 
