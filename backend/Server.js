@@ -310,29 +310,38 @@ app.get("/api/leaderboard", authenticateToken, async (req, res) => {
         );
 
         // مرحله ۱: بهترین امتیاز *تمام* کاربران را بر اساس شرط پیدا می‌کنیم (بدون limit)
-        const allScores = await Score.findAll({
+        const allScoresSorted = await Score.findAll({
             where: whereCondition,
-            attributes: [
-                "userTelegramId",
-                [sequelize.fn("MAX", sequelize.col("score")), "max_score"],
+            order: [
+                ["score", "DESC"],
+                ["createdAt", "ASC"], // این خط ترتیب را در امتیازهای مساوی تعیین می‌کند
             ],
-            group: ["userTelegramId"],
-            order: [[sequelize.col("max_score"), "DESC"]], // مرتب‌سازی بر اساس بیشترین امتیاز
             raw: true,
         });
+        const uniquePlayerScores = [];
+        const seenUserIds = new Set();
 
-        // مرحله ۲: رتبه‌بندی را در سرور محاسبه می‌کنیم
+        for (const scoreRecord of allScoresSorted) {
+            if (!seenUserIds.has(scoreRecord.userTelegramId)) {
+                uniquePlayerScores.push({
+                    userTelegramId: scoreRecord.userTelegramId,
+                    score: scoreRecord.score,
+                });
+                seenUserIds.add(scoreRecord.userTelegramId);
+            }
+        }
+
         let rank = 0;
         let lastScore = Infinity;
-        const allRanks = allScores.map((entry, index) => {
-            if (entry.max_score < lastScore) {
-                rank = index + 1; // رتبه برابر با جایگاه در آرایه مرتب‌شده است
-                lastScore = entry.max_score;
+        const allRanks = uniquePlayerScores.map((entry, index) => {
+            if (entry.score < lastScore) {
+                rank = index + 1;
+                lastScore = entry.score;
             }
             return {
                 userTelegramId: entry.userTelegramId,
-                score: entry.max_score,
-                rank: rank, // اضافه کردن رتبه به هر بازیکن
+                score: entry.score,
+                rank: rank,
             };
         });
 

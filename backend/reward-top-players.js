@@ -90,7 +90,7 @@ async function findAndRewardTopPlayers(eventId) {
                 const rewardLink = ontonResponse?.data?.reward_link;
 
                 if (rewardLink) {
-                    // await sendWinnerMessage(userId, userName, winner.max_score, rewardLink);
+                    await sendWinnerMessage(userId, userName, winner.max_score, rewardLink);
                 } else {
                     logger.error(`Could not get reward link for winner ${userId}.`);
                 }
@@ -108,7 +108,7 @@ async function findAndRewardTopPlayers(eventId) {
                 const userName = user?.firstName || `Player ${userId}`;
                 
                 logger.info(`Processing NON-WINNER: User ${userId} (${userName}) with score ${participant.max_score}`);
-                // await sendConsolationMessage(userId, userName, participant.max_score);
+                await sendConsolationMessage(userId, userName, participant.max_score);
             }
         }
 
