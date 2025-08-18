@@ -73,8 +73,7 @@ function App() {
                         eventId: currentGameEventId,
                     };
 
-                    // هیچ تغییر دیگری در fetch لازم نیست
-                    await fetch(`${API_BASE}/gameOver`, {
+                    const response = await fetch(`${API_BASE}/gameOver`, {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
@@ -82,9 +81,18 @@ function App() {
                         },
                         body: JSON.stringify(body),
                     });
+                    if (!response.ok) {
+                        // اگر موفق نبود، پاسخ JSON را می‌خوانیم تا به پیام خطا دسترسی پیدا کنیم
+                        const errorData = await response.json();
+
+                        // ۳. پیام خطای دریافتی از سرور را به عنوان خطا تنظیم می‌کنیم
+                        throw new Error(
+                            errorData.message || "An unknown error occurred."
+                        );
+                    }
                 } catch (err) {
                     console.error("Failed to save score:", err);
-                    setError("Failed to save score");
+                    setError(err.message); // نمایش پیام خطا به کاربر
                 }
             }
 
@@ -174,16 +182,16 @@ function App() {
 
             try {
                 const response = await fetch(`${API_BASE}/start-game`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ eventId }), // ارسال eventId
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ eventId }), // ارسال eventId
                 });
 
                 if (!response.ok) {
-                throw new Error("Could not start the game.");
+                    throw new Error("Could not start the game.");
                 }
             } catch (err) {
                 console.error("Error starting game:", err);

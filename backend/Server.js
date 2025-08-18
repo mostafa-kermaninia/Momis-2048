@@ -132,7 +132,7 @@ app.post("/api/start-game", authenticateToken, (req, res) => {
     playersTimes[userId] = Date.now();
 
     const videoUrl = `/sequence.webm?sequence=${JSON.stringify(userId)}`;
-    res.json({ status: "success"});
+    res.json({ status: "success" });
 });
 
 app.post("/api/saveScenario", authenticateToken, async (req, res) => {
@@ -182,10 +182,9 @@ app.post("/api/saveScenario", authenticateToken, async (req, res) => {
     );
 
     res.status(200).json({
-            status: "success",
-            message: "Moves Saved successfully.",
-        });
-
+        status: "success",
+        message: "Moves Saved successfully.",
+    });
 });
 
 app.post("/api/gameOver", authenticateToken, async (req, res) => {
@@ -216,32 +215,36 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
             .json({ status: "error", message: "Game cannot have zero moves." });
     }
 
-    
     if (!gameSessions[userId]) {
         gameSessions[userId] = gameScenario;
     } else {
         const prevMoves = gameSessions[userId].moves;
         const prevNewTiles = gameSessions[userId].newTiles;
-        
+
         gameSessions[userId] = {
             moves: [...prevMoves, ...moves],
             newTiles: [...prevNewTiles, ...newTiles],
         };
     }
     logger.info(
-        `[gameOver] Received scenario with ${gameSessions[userId].moves.length} moves and ${
+        `[gameOver] Received scenario with ${
+            gameSessions[userId].moves.length
+        } moves and ${
             gameSessions[userId].newTiles.length
         } new tiles for user: ${userId} in event: ${eventId || "Free Play"}`
     );
-    
-    try {
 
+    try {
         // مرحله ۳: بازی را در سرور با سناریوی کامل شبیه‌سازی می‌کنیم
         // ❗️ تابع simulateGameAndGetScore باید بتواند gameScenario را بپذیرد
-        const serverCalculatedScore = simulateGameAndGetScore(gameSessions[userId]);
-        
-        const timePerMove = (Date.now() - playersTimes[userId]) / gameSessions[userId].moves.length;
-        console.log('Avg move time = ' + timePerMove);
+        const serverCalculatedScore = simulateGameAndGetScore(
+            gameSessions[userId]
+        );
+
+        const timePerMove =
+            (Date.now() - playersTimes[userId]) /
+            gameSessions[userId].moves.length;
+        console.log("Avg move time = " + timePerMove);
         delete playersTimes[userId];
         delete gameSessions[userId];
 
@@ -249,9 +252,13 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
             `[gameOver] Server-validated score: ${serverCalculatedScore} for user: ${userId}`
         );
 
-        if (serverCalculatedScore === -1 || timePerMove < 350) {
+        if (serverCalculatedScore === -1 || timePerMove < 80) {
             logger.info(`[CHEAT DETECTED]: skip saving score for: ${userId}`);
-            throw new Error("Cheat detected!");
+            return res.status(400).json({
+                status: "cheat_detected",
+                message:
+                    "Gameplay speed exceeded normal limits. Score not saved.",
+            });
         }
 
         // مرحله ۴: امتیاز محاسبه شده توسط سرور را در دیتابیس ذخیره می‌کنیم
@@ -266,8 +273,6 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
                 eventId || "Free Play"
             }`
         );
-
-
 
         res.status(201).json({
             status: "success",
@@ -426,7 +431,7 @@ app.get("/api/best-score/:eventId?", authenticateToken, async (req, res) => {
     let { eventId } = req.params;
 
     // اگر eventId وجود نداشت یا freeplay بود، آن را null در نظر بگیر
-    if (!eventId || eventId === 'freeplay') {
+    if (!eventId || eventId === "freeplay") {
         eventId = null;
     }
 
@@ -434,17 +439,18 @@ app.get("/api/best-score/:eventId?", authenticateToken, async (req, res) => {
         const bestScoreRecord = await Score.findOne({
             where: {
                 userTelegramId: userId,
-                eventId: eventId
+                eventId: eventId,
             },
-            order: [['score', 'DESC']] // مرتب‌سازی برای پیدا کردن بیشترین امتیاز
+            order: [["score", "DESC"]], // مرتب‌سازی برای پیدا کردن بیشترین امتیاز
         });
 
         const bestScore = bestScoreRecord ? bestScoreRecord.score : 0;
-        
-        res.json({ bestScore });
 
+        res.json({ bestScore });
     } catch (error) {
-        logger.error(`Failed to fetch best score for user ${userId}: ${error.message}`);
+        logger.error(
+            `Failed to fetch best score for user ${userId}: ${error.message}`
+        );
         res.status(500).json({ message: "Server error fetching best score" });
     }
 });
