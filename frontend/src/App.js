@@ -39,6 +39,8 @@ function App() {
         const saved = localStorage.getItem("userData");
         return saved ? JSON.parse(saved) : null;
     });
+    const [seed, setSeed] = useState(null);
+
     const [token, setToken] = useState(
         () => localStorage.getItem("jwtToken") || null
     );
@@ -171,8 +173,11 @@ function App() {
     const startGame = useCallback(
         async (eventId) => {
             console.log(`[App.js] Starting Game for event: ${eventId}`);
-            setCurrentGameEventId(eventId);
-            fetchBestScore(eventId, token);
+            if (eventId !== "playing again"){
+                setCurrentGameEventId(eventId);
+                fetchBestScore(eventId, token);
+            } else 
+                eventId = currentGameEventId;
 
             if (!isAuthenticated || !token) {
                 setError("Please authenticate first");
@@ -193,6 +198,10 @@ function App() {
                 if (!response.ok) {
                     throw new Error("Could not start the game.");
                 }
+
+                const data = await response.json();
+                setSeed(data.seed);   
+
             } catch (err) {
                 console.error("Error starting game:", err);
                 setError("Failed to start a new game.");
@@ -202,7 +211,7 @@ function App() {
             setFinalScore(null);
             setView("game");
         },
-        [isAuthenticated, token, fetchBestScore]
+        [setSeed, isAuthenticated, token, fetchBestScore, setCurrentGameEventId, currentGameEventId]
     );
 
     const authenticateUser = useCallback(async () => {
@@ -437,13 +446,14 @@ function App() {
                     <Game2048
                         onGameOver={handleGameOver}
                         onSaveMoves={saveScenario}
+                        onReplay={startGame}
                         onGoHome={handleGoHome}
                         eventId={currentGameEventId}
                         // ✨ بهترین امتیاز را به عنوان prop به کامپوننت بازی پاس می‌دهیم
                         initialBestScore={bestScore}
                         isMuted={isMuted}
                         onToggleMute={handleToggleMute} // <-- prop جدید
-                        // <-- prop جدید
+                        seed={seed}// <-- prop جدید
                     />
                 </div>
             ),
@@ -455,6 +465,8 @@ function App() {
             currentGameEventId,
             isMuted, // <-- این را اضافه کنید
             handleToggleMute,
+            seed,
+            startGame,
         ]
     );
 
@@ -599,10 +611,12 @@ function App() {
                                 <Game2048
                                     onGameOver={handleGameOver}
                                     onSaveMoves={saveScenario}
+                                    onReplay={startGame}
                                     onGoHome={handleGoHome}
                                     initialBestScore={bestScore}
                                     isMuted={isMuted}
                                     onToggleMute={handleToggleMute}
+                                    seed={seed}
                                 />
                             </div>
                         )}

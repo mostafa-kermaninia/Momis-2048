@@ -16,7 +16,7 @@ const app = express();
 app.use(express.json());
 
 gameSessions = {};
-playersTimes = {};
+playersInitData = {};
 
 // --- پیکربندی CORS (بدون تغییر) ---
 const allowedOrigins = [
@@ -129,10 +129,12 @@ app.post("/api/start-game", authenticateToken, (req, res) => {
     const userId = req.user.userId;
     logger.info(`[start-game] User ${userId} is starting a new game.`);
 
-    playersTimes[userId] = Date.now();
+    playersInitData[userId] = {
+        startTime: Date.now(),
+        seed: Date.now() + userId + 872445 * Math.random()
+    };
 
-    const videoUrl = `/sequence.webm?sequence=${JSON.stringify(userId)}`;
-    res.json({ status: "success" });
+    res.json({ status: "success" , seed: playersInitData[userId].seed});
 });
 
 app.post("/api/saveScenario", authenticateToken, async (req, res) => {
@@ -238,14 +240,23 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
         // مرحله ۳: بازی را در سرور با سناریوی کامل شبیه‌سازی می‌کنیم
         // ❗️ تابع simulateGameAndGetScore باید بتواند gameScenario را بپذیرد
         const serverCalculatedScore = simulateGameAndGetScore(
-            gameSessions[userId]
+            gameSessions[userId], playersInitData[userId].seed
         );
 
+        if (!playersInitData[userId] || !gameSessions[userId]) {
+            logger.info(`[LACK OF INFO]: skip saving score for: ${userId}`);
+            return res.status(400).json({
+                status: "start time not found",
+                message:
+                    "Gameplay start time not found. Please start again",
+            });
+        }
+
         const timePerMove =
-            (Date.now() - playersTimes[userId]) /
+            (Date.now() - playersInitData[userId].startTime) /
             gameSessions[userId].moves.length;
         console.log("Avg move time = " + timePerMove);
-        delete playersTimes[userId];
+        delete playersInitData[userId];
         delete gameSessions[userId];
 
         logger.info(

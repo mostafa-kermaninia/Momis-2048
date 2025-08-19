@@ -2,10 +2,12 @@ import React, { useState, useEffect, useCallback } from "react";
 import { playSound } from "../utils/SoundManager"; // <-- این خط را اضافه کنید
 
 import "./Game2048.css";
+import { SeededRandom } from './SeededRandom'; 
 
 const createEmptyGrid = () =>
     Array.from({ length: 4 }, () => Array(4).fill(null));
-const getRandomAvailableCell = (grid) => {
+// توابع رندوم‌سازی که SeededRandom را به عنوان آرگومان می‌پذیرند
+const getRandomAvailableCell = (grid, seededRandom) => {
     const availableCells = [];
     for (let y = 0; y < 4; y++) {
         for (let x = 0; x < 4; x++) {
@@ -16,27 +18,28 @@ const getRandomAvailableCell = (grid) => {
     }
     if (availableCells.length > 0) {
         return availableCells[
-            Math.floor(Math.random() * availableCells.length)
+            Math.floor(seededRandom.next() * availableCells.length)
         ];
     }
     return null;
 };
-const addRandomTile = (grid) => {
+
+const addRandomTile = (grid, seededRandom) => {
     const newGrid = grid.map((row) => [...row]);
-    const cell = getRandomAvailableCell(newGrid);
+    const cell = getRandomAvailableCell(newGrid, seededRandom);
     let newTileData = null;
     if (cell) {
-        const value = Math.random() < 0.9 ? 2 : 4;
+        const value = seededRandom.next() < 0.9 ? 2 : 4;
         newGrid[cell.y][cell.x] = {
             value,
-            id: Date.now() + Math.random(),
+            id: Date.now() + seededRandom.next(),
             isNew: true,
         };
-        // ✨ آبجکت ساده و تمیز برای ارسال به سرور
         newTileData = { value, x: cell.x, y: cell.y };
     }
     return { grid: newGrid, newTileData };
 };
+
 const movesAvailable = (g) => {
     for (let y = 0; y < 4; y++)
         for (let x = 0; x < 4; x++) {
@@ -99,39 +102,35 @@ const move = (g, d) => {
     return { newGrid: G, score: s, moved: m };
 };
 
-// The Component with the final fix
+// کامپوننت اصلی بازی
 const Game2048 = ({
     onGameOver,
     onSaveMoves,
+    onReplay,
     onGoHome,
     initialBestScore,
     isMuted,
-    onToggleMute
+    onToggleMute,
+    seed,
 }) => {
     const [grid, setGrid] = useState(createEmptyGrid());
     const [score, setScore] = useState(0);
     const [bestScore, setBestScore] = useState(initialBestScore || 0);
     const [isGameOver, setGameOver] = useState(false);
-
-    // ✨ **THE FIX**: Use separate, reliable states instead of a single scenario object
     const [moves, setMoves] = useState([]);
     const [allNewTiles, setAllNewTiles] = useState([]);
 
-    useEffect(() => {
-        setBestScore(initialBestScore || 0);
-    }, [initialBestScore]);
+    const seededRandomRef = useRef(null);
 
     const setupGame = useCallback(() => {
         let tempGrid = createEmptyGrid();
-        const firstTileResult = addRandomTile(tempGrid);
+        const firstTileResult = addRandomTile(tempGrid, seededRandomRef.current);
         tempGrid = firstTileResult.grid;
-        const secondTileResult = addRandomTile(tempGrid);
+        const secondTileResult = addRandomTile(tempGrid, seededRandomRef.current);
 
         setGrid(secondTileResult.grid);
         setScore(0);
         setGameOver(false);
-
-        // ✨ Initialize the new states correctly
         setMoves([]);
         setAllNewTiles(
             [firstTileResult.newTileData, secondTileResult.newTileData].filter(
@@ -141,8 +140,13 @@ const Game2048 = ({
     }, []);
 
     useEffect(() => {
+        seededRandomRef.current = new SeededRandom(seed);
         setupGame();
-    }, [setupGame]);
+    }, [seed, setupGame]);
+
+    useEffect(() => {
+        setBestScore(initialBestScore || 0);
+    }, [initialBestScore]);
 
     const processMove = useCallback(
         (direction) => {
@@ -151,7 +155,6 @@ const Game2048 = ({
             const { newGrid, score: newScore, moved } = move(grid, direction);
 
             if (moved) {
-                // بخش مربوط به صدا و نمره
                 if (!isMuted) {
                     if (newScore > 0) {
                         playSound("merge");
@@ -160,7 +163,7 @@ const Game2048 = ({
                     }
                 }
                 
-                const { grid: gridWithNewTile, newTileData } = addRandomTile(newGrid);
+                const { grid: gridWithNewTile, newTileData } = addRandomTile(newGrid, seededRandomRef.current);
                 const updatedScore = score + newScore;
 
                 setGrid(gridWithNewTile);
@@ -175,11 +178,9 @@ const Game2048 = ({
                 };
                 const newMove = directionMap[direction];
                 
-                // ✅ مرحله ۱: آرایه‌های جدید را به صورت محلی بسازید.
                 const newMovesArray = [...moves, newMove];
                 const newTilesArray = [...allNewTiles, newTileData].filter(Boolean);
 
-                // ✅ مرحله ۲: شرط را روی آرایه‌ی جدید و به روز بررسی کنید.
                 if (newMovesArray.length >= 2000) {
                     if (typeof onSaveMoves === 'function') {
                         onSaveMoves(updatedScore, {
@@ -187,11 +188,9 @@ const Game2048 = ({
                             newTiles: newTilesArray,
                         });
                     }
-                    // ✅ مرحله ۳: state را پس از ارسال داده‌ها ریست کنید.
                     setMoves([]);
                     setAllNewTiles([]);
                 } else {
-                    // ✅ مرحله ۴: در غیر این صورت، state را با آرایه‌های جدید به‌روز کنید.
                     setMoves(newMovesArray);
                     setAllNewTiles(newTilesArray);
                 }
@@ -200,7 +199,6 @@ const Game2048 = ({
                     if (!isMuted) playSound("gameOver");
 
                     setGameOver(true);
-                    // ✅ از آرایه‌های محلی جدید برای ارسال داده‌های نهایی استفاده کنید.
                     if (typeof onGameOver === 'function') {
                         onGameOver(updatedScore, {
                             moves: newMovesArray,
@@ -210,7 +208,6 @@ const Game2048 = ({
                 }
             }
         },
-        // ✅ مطمئن شوید که onSaveMoves در آرایه‌ی وابستگی‌ها قرار دارد.
         [grid, score, bestScore, isGameOver, onGameOver, onSaveMoves, moves, allNewTiles, isMuted]
     );
 
@@ -243,8 +240,8 @@ const Game2048 = ({
             row.map((cell, x) => (cell ? { ...cell, x, y } : null))
         )
         .filter(Boolean);
+
     return (
-        // ... Your JSX remains unchanged ...
         <div className="game-wrapper">
             <div className="game-header">
                 <h1 className="title">MOMIS 2048</h1>
@@ -256,10 +253,9 @@ const Game2048 = ({
                 </div>
             </div>
             <div className="above-game">
-                <button className="game-button" onClick={setupGame}>
+                <button className="game-button" onClick={() => onReplay("playing again")}>
                     New Game
                 </button>
-                {/* ✅ دکمه کنترل صدا */}
                 <button className="game-button" onClick={onToggleMute}>
                     {isMuted ? "Sound: OFF" : "Sound: ON"}
                 </button>
