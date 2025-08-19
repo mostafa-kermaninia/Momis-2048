@@ -1,4 +1,4 @@
-import { SeededRandom } from './SeededRandom.js'; 
+const { SeededRandom } = require('./SeededRandom');
 
 // توابع پایه‌ای بازی (بدون تغییر)
 const createEmptyGrid = () =>
