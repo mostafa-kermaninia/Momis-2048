@@ -1,4 +1,4 @@
-class SeededRandom {
+export class SeededRandom {
     constructor(seed) {
         this.seed = typeof seed === 'number' && seed !== 0 ? seed : 12345;
     }
