@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { playSound } from "../utils/SoundManager"; // <-- این خط را اضافه کنید
 
 import "./Game2048.css";
