@@ -1,4 +1,4 @@
-import { SeededRandom } from './SeededRandom'; 
+import { SeededRandom } from './SeededRandom.js'; 
 
 // توابع پایه‌ای بازی (بدون تغییر)
 const createEmptyGrid = () =>
