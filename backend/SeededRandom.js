@@ -11,3 +11,6 @@ class SeededRandom {
         return this.seed / m;
     }
 }
+
+
+module.exports = { SeededRandom };
