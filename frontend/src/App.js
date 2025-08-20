@@ -267,6 +267,13 @@ function App() {
             const storedToken = localStorage.getItem("jwtToken");
             const storedUserData = localStorage.getItem("userData");
 
+
+            if (tg && tg.initData) {
+                console.log("Telegram initData found. Authenticating...");
+                await authenticateUser(); // authenticateUser خودش view را به 'lobby' یا 'auth' تغییر می‌دهد
+                return;
+            }
+
             if (storedToken && storedUserData) {
                 console.log("Found session in localStorage.");
                 setToken(storedToken);
@@ -276,11 +283,6 @@ function App() {
                 return;
             }
 
-            if (tg && tg.initData) {
-                console.log("Telegram initData found. Authenticating...");
-                await authenticateUser(); // authenticateUser خودش view را به 'lobby' یا 'auth' تغییر می‌دهد
-                return;
-            }
 
             console.warn("Running in development mode.");
             // در حالت تست، مستقیم به لابی برو
