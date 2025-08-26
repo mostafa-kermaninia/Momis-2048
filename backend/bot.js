@@ -186,7 +186,7 @@ function startListening() {
     bot.onText(/\/start/, async (msg) => {
         const userId = msg.from.id;
         const firstName = msg.from.first_name;
-
+        console.log("Duplicate start");
         try {
             const isMember = await isUserMember(userId);
             
