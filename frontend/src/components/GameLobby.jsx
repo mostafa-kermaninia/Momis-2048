@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import DefaultAvatar from "../assets/default-avatar.png";
 import MyLeaderboardIcon_B from "../assets/LI-B.png"; // <-- این خط را اضافه کنید
 import MyLeaderboardIcon_G from "../assets/LI-G.png"; // <-- این خط را اضافه کنید
+import { ClipboardIcon } from "@heroicons/react/24/outline";
+
 
 const GameLobby = ({
     onGameStart,
@@ -14,7 +16,7 @@ const GameLobby = ({
     const [events, setEvents] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
-
+    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         const fetchEvents = async () => {
