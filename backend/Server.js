@@ -58,6 +58,32 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
+async function getActiveReferredFriendsCount(currentUserId) {
+    try {
+        const invitedNum = await User.count({
+            where: {
+                referrerTelegramId: currentUserId // کاربرانی که currentUserId آنها را دعوت کرده است
+            },
+            include: [{
+                model: Score,
+                as: 'Scores', // از alias 'Scores' که در db.js تعریف شده، استفاده می‌کنیم
+                attributes: [], // نیازی به واکشی فیلدهای Score نیست، فقط برای شرط join استفاده می‌شود
+                required: true // این شرط تضمین می‌کند که کاربر حداقل یک Score داشته باشد
+            }],
+            distinct: true, // تضمین می‌کند که هر کاربر فقط یک بار شمارش شود (در صورت وجود چندین Score)
+        });
+
+        console.log(`User ${currentUserId} has invited ${invitedNum} active friends.`);
+        return invitedNum;
+
+    } catch (error) {
+        console.error(`Error fetching active referred friends count for user ${currentUserId}:`, error);
+        // در صورت بروز خطا، می‌توانید 0 یا مقدار دیگری را برگردانید
+        return 0;
+    }
+}
+
+
 app.post("/api/telegram-auth", async (req, res) => {
     // --- لاگ تشخیصی برای دیدن مبدا درخواست ---
     logger.info(`Auth request received from origin: ${req.headers.origin}`);
@@ -113,8 +139,10 @@ app.post("/api/telegram-auth", async (req, res) => {
             { expiresIn: "1d" }
         );
 
+        const invitedNum = await getActiveReferredFriendsCount(userData.id);
+
         logger.info(`Auth successful for user: ${userData.id}`);
-        res.json({ valid: true, user: userData, token });
+        res.json({ invitedNum: invitedNum, valid: true, user: userData, token });
     } catch (error) {
         logger.error(`Telegram auth error: ${error.message}`);
         res.status(401).json({

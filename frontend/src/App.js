@@ -5,9 +5,9 @@ import React, {
     useMemo,
     Suspense,
 } from "react";
-// import Leaderboard from "./components/Leaderboard";
-// import GameLobby from "./components/GameLobby";
-// import Game2048 from "./components/Game2048";
+
+
+
 import DefaultAvatar from "./assets/default-avatar.png"; // مسیر را چک کنید
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -35,6 +35,7 @@ function App() {
     const [authLoading, setAuthLoading] = useState(true);
     const [error, setError] = useState(null);
     const [membershipRequired, setMembershipRequired] = useState(false);
+    const [invitedNum, setInvitedNum] = useState(0);
     const [userData, setUserData] = useState(() => {
         const saved = localStorage.getItem("userData");
         return saved ? JSON.parse(saved) : null;
@@ -240,6 +241,7 @@ function App() {
                 throw new Error(data.message || "Authentication failed");
             }
 
+            setInvitedNum(data.invitedNum);
             setToken(data.token);
             setUserData(data.user);
             localStorage.setItem("jwtToken", data.token);
@@ -428,6 +430,7 @@ function App() {
                     userData={userData}
                     onLogout={handleLogout}
                     onImageError={handleImageError}
+                    invitedNum={invitedNum}
                 />
             ),
         [
@@ -437,6 +440,7 @@ function App() {
             handleLogout,
             handleImageError,
             handleShowLeaderboard,
+            invitedNum,
         ]
     );
 
@@ -605,6 +609,7 @@ function App() {
                                 onImageError={handleImageError}
                                 isMuted={isMuted}
                                 onToggleMute={handleToggleMute}
+                                invitedNum={invitedNum}
                             />
                         )}
 
