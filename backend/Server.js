@@ -439,7 +439,7 @@ app.get("/api/leaderboard", authenticateToken, async (req, res) => {
     }
 });
 
-app.get("/api/events", async(req, res) => {
+app.get("/api/events", authenticateToken, async(req, res) => {
     const userId = req.user.userId;
     const activeEvents = [];
     if (process.env.ONTON_EVENT_UUID) {
