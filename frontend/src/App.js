@@ -35,7 +35,7 @@ function App() {
     const [authLoading, setAuthLoading] = useState(true);
     const [error, setError] = useState(null);
     const [membershipRequired, setMembershipRequired] = useState(false);
-    const [invitedNum, setInvitedNum] = useState(0);
+    // const [invitedNum, setInvitedNum] = useState(0);
     const [userData, setUserData] = useState(() => {
         const saved = localStorage.getItem("userData");
         return saved ? JSON.parse(saved) : null;
@@ -241,7 +241,7 @@ function App() {
                 throw new Error(data.message || "Authentication failed");
             }
 
-            setInvitedNum(data.invitedNum);
+            // setInvitedNum(data.invitedNum);
             setToken(data.token);
             setUserData(data.user);
             localStorage.setItem("jwtToken", data.token);
@@ -430,7 +430,7 @@ function App() {
                     userData={userData}
                     onLogout={handleLogout}
                     onImageError={handleImageError}
-                    invitedNum={invitedNum}
+                    // invitedNum={invitedNum}
                 />
             ),
         [
@@ -440,7 +440,7 @@ function App() {
             handleLogout,
             handleImageError,
             handleShowLeaderboard,
-            invitedNum,
+            // invitedNum,
         ]
     );
 
@@ -609,7 +609,7 @@ function App() {
                                 onImageError={handleImageError}
                                 isMuted={isMuted}
                                 onToggleMute={handleToggleMute}
-                                invitedNum={invitedNum}
+                                // invitedNum={invitedNum}
                             />
                         )}
 

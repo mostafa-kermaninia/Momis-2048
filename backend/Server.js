@@ -139,10 +139,9 @@ app.post("/api/telegram-auth", async (req, res) => {
             { expiresIn: "1d" }
         );
 
-        const invitedNum = await getActiveReferredFriendsCount(userData.id);
 
         logger.info(`Auth successful for user: ${userData.id}`);
-        res.json({ invitedNum: invitedNum, valid: true, user: userData, token });
+        res.json({ valid: true, user: userData, token });
     } catch (error) {
         logger.error(`Telegram auth error: ${error.message}`);
         res.status(401).json({
@@ -440,7 +439,8 @@ app.get("/api/leaderboard", authenticateToken, async (req, res) => {
     }
 });
 
-app.get("/api/events", (req, res) => {
+app.get("/api/events", async(req, res) => {
+    const userId = req.user.userId;
     const activeEvents = [];
     if (process.env.ONTON_EVENT_UUID) {
         activeEvents.push({
@@ -449,7 +449,9 @@ app.get("/api/events", (req, res) => {
             description: "Compete for the grand prize in the main event!",
         });
     }
-    res.json({ status: "success", events: activeEvents });
+    const invitedNum = await getActiveReferredFriendsCount(userId);
+
+    res.json({ invitedNum: invitedNum, status: "success", events: activeEvents });
 });
 
 /**

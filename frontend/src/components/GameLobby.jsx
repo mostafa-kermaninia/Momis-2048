@@ -11,12 +11,12 @@ const GameLobby = ({
     userData,
     onLogout,
     onImageError,
-    invitedNum,
 }) => {
     const [events, setEvents] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [invitedNum, setInvitedNum] = useState(0);
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -31,6 +31,7 @@ const GameLobby = ({
                 }).then((res) => res.json());
                 if (response.status === "success") {
                     setEvents(response.events);
+                    setInvitedNum(response.invitedNum);
                 }
             } catch (error) {
                 console.error("Failed to fetch events:", error);
