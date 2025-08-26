@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import DefaultAvatar from "../assets/default-avatar.png";
 import MyLeaderboardIcon_B from "../assets/LI-B.png"; // <-- این خط را اضافه کنید
 import MyLeaderboardIcon_G from "../assets/LI-G.png"; // <-- این خط را اضافه کنید
+import { ClipboardIcon } from "@heroicons/react/24/outline";
+
 
 const GameLobby = ({
     onGameStart,
@@ -12,6 +14,9 @@ const GameLobby = ({
 }) => {
     const [events, setEvents] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [copied, setCopied] = useState(false);
+    const [invitedNum, setInvitedNum] = useState(0);
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -26,6 +31,7 @@ const GameLobby = ({
                 }).then((res) => res.json());
                 if (response.status === "success") {
                     setEvents(response.events);
+                    setInvitedNum(response.invitedNum);
                 }
             } catch (error) {
                 console.error("Failed to fetch events:", error);
@@ -35,6 +41,25 @@ const GameLobby = ({
         };
         fetchEvents();
     }, []);
+
+    const handleCopyLink = async () => {
+        const inviteLink = `https://t.me/${userData.bot_username || 'Momis_2048_bot'}?start=invite_${userData.id}`;
+        try {
+        const textarea = document.createElement('textarea');
+        textarea.value = inviteLink;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+        console.error('Failed to copy text: ', err);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -81,6 +106,19 @@ const GameLobby = ({
                     </div>
                 </div>
             )}
+
+            {/* بخش جدید: نمایش تعداد دوستان دعوت‌شده و دکمه Invite Friends */}
+            <div className="bg-gray-700 bg-opacity-50 rounded-lg p-4 my-3 transition-transform transform hover:scale-105 text-center">
+                <h2 className="text-lg font-bold text-white mb-2">
+                Total Invited Friends: {invitedNum}
+                </h2>
+                <button
+                onClick={() => setIsModalOpen(true)}
+                className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-4 rounded-lg transition-colors"
+                >
+                Invite Friends
+                </button>
+            </div>
 
             <h1 className="text-3xl font-bold mb-6 text-center text-white">
                 Select Mode
@@ -155,6 +193,44 @@ const GameLobby = ({
                         Check back later for new events!
                     </p>
                 </div>
+            )}
+
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
+                <div className="bg-gray-800 bg-opacity-90 rounded-xl p-6 w-full max-w-sm">
+                    <h2 className="text-2xl font-bold text-white mb-4 text-center">
+                    Invite a Friend
+                    </h2>
+                    <h3 className="text-gray-300 font-semibold mb-2">How it works:</h3>
+                    <ol className="list-decimal list-inside text-gray-400 mb-4 space-y-2">
+                    <li>Copy your personal invite link below.</li>
+                    <li>Send it to your friends.</li>
+                    <li>When they join and play, you will get some rewards!</li>
+                    </ol>
+                    <div className="bg-gray-700 rounded-lg p-3 break-all mb-4 text-sm text-gray-300">
+                    {`https://t.me/${userData.bot_username || 'Momis_2048_bot'}?start=invite_${userData.id}`}
+                    </div>
+                    <div className="flex space-x-4">
+                    <button
+                        onClick={handleCopyLink}
+                        className={`w-full flex items-center justify-center space-x-2 py-2 px-4 rounded-lg font-bold transition-colors ${
+                        copied
+                            ? "bg-green-500 text-white"
+                            : "bg-blue-600 hover:bg-blue-700 text-white"
+                        }`}
+                    >
+                        <ClipboardIcon className="h-5 w-5" />
+                        <span>{copied ? 'Copied!' : 'Copy Link'}</span>
+                    </button>
+                    </div>
+                    <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="mt-4 w-full text-center text-gray-400 hover:text-white transition-colors"
+                    >
+                    Close
+                    </button>
+                </div>
+               </div>
             )}
         </div>
     );

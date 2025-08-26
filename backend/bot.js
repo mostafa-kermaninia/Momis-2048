@@ -7,6 +7,7 @@ const token = process.env.BOT_TOKEN;
 if (!token) {
     throw new Error('Telegram BOT_TOKEN is not configured in .env file.');
 }
+const { User, Score, Reward, sequelize } = require("./DataBase/models");
 
 // خواندن متغیرها از فایل تنظیمات برای انعطاف‌پذیری بیشتر
 const REQUIRED_CHANNEL_ID = process.env.REQUIRED_CHANNEL_ID;
@@ -99,10 +100,92 @@ The tournament has now ended. Keep practicing for the next event!`;
 
 
 function startListening() {
-    bot.onText(/\/start/, async (msg) => {
+        // ---- هندلر جدید برای دستور /start با Payload (مانند /start invite_12345) ----
+    bot.onText(/\/start (.+)/, async (msg, match) => {
         const userId = msg.from.id;
         const firstName = msg.from.first_name;
+        const username = msg.from.username;
+        const lastName = msg.from.last_name;
+        const payload = match[1];
 
+        let referrerTelegramId = null;
+        if (payload.startsWith('invite_')) {
+            referrerTelegramId = parseInt(payload.substring(7), 10);
+            if (isNaN(referrerTelegramId) || referrerTelegramId === userId) {
+                referrerTelegramId = null; 
+            }
+        }
+
+        try {
+            let user = await User.findByPk(userId);
+
+            if (!user) {
+                user = await User.create({
+                    telegramId: userId,
+                    username: username,
+                    firstName: firstName,
+                    lastName: lastName,
+                    referrerTelegramId: referrerTelegramId,
+                });
+                logger.info(`New user registered: ${userId}. Referrer: ${referrerTelegramId || 'None'}`);
+
+                if (referrerTelegramId) {
+                    const referrer = await User.findByPk(referrerTelegramId);
+                    const referrerName = referrer ? (referrer.firstName || referrer.username) : 'a friend';
+                    await bot.sendMessage(userId, 
+                        `👋 Welcome, *${firstName}*! You were invited by *${referrerName}* to join the game.`, 
+                        { parse_mode: "Markdown" }
+                    );
+                } else {
+                    await bot.sendMessage(userId, 
+                        `🎉 Welcome, *${firstName}*!`, 
+                        { parse_mode: "Markdown" }
+                    );
+                }
+            } else {
+                logger.info(`Existing user ${userId} started bot.`);
+            }
+            
+            const isMember = await isUserMember(userId);
+            
+            if (!isMember) {
+                // ارسال پیام الزام به عضویت با دکمه‌های بهبودیافته
+                const channelLink = `https://t.me/${(process.env.REQUIRED_CHANNEL_ID || '@MOMIS_studio').replace('@', '')}`;
+                const groupLink = process.env.GROUP_INVITE_LINK || 'https://t.me/MOMIS_community';
+                const message = `👋 Hello, *${firstName}*!\n\nTo play the game, please join our community channels first, then click the button below.`;
+                
+                const options = {
+                    parse_mode: 'Markdown',
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: '📢 Join Channel', url: channelLink }],
+                            [{ text: '💬 Join Community Group', url: groupLink }],
+                            [{ text: '✅ I\'ve Joined!', callback_data: 'check_membership' }] // دکمه جدید
+                        ]
+                    }
+                };
+                
+                return await bot.sendMessage(userId, message, options);
+            }
+            const welcomeText = `🎉 Welcome, *${firstName}*!\n\n Click the button below to play **2048**!`;
+            const options = {
+                parse_mode: "Markdown",
+                reply_markup: {
+                    inline_keyboard: [[{ text: "🚀 Play Game!", web_app: { url: "https://new2048.momis.studio"} }]]
+                }
+            };
+            await bot.sendMessage(userId, welcomeText, options);
+
+        } catch (error) {
+            logger.error(`Error in /start handler for user ${userId}: ${error.message}`);
+            await bot.sendMessage(userId, '❌ An error occurred. Please try again later.');
+        }
+    });
+
+
+    bot.onText(/^\/start$/, async (msg) => {
+        const userId = msg.from.id;
+        const firstName = msg.from.first_name;
         try {
             const isMember = await isUserMember(userId);
             
