@@ -11,6 +11,7 @@ const fetch = require("node-fetch");
 const logger = require("./logger");
 const validateTelegramData = require("./telegramAuth");
 const { User, Score, sequelize } = require("./DataBase/models");
+const { Op } = require("sequelize"); // +++ این خط را اضافه کنید +++
 
 const app = express();
 app.use(express.json());
@@ -358,7 +359,7 @@ app.get("/api/referral-leaderboard", async (req, res) => {
             where: {
                 // شرط می‌گذاریم که کاربر حتما توسط کسی دعوت شده باشد
                 referrerTelegramId: {
-                    [sequelize.Op.ne]: null,
+                    [Op.ne]: null,
                 },
             },
             group: [
