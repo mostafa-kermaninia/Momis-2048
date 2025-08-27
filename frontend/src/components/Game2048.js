@@ -290,7 +290,7 @@ const Game2048 = ({
                     </div>
                 </div>
             </div>
-            <div className="above-game">
+            <div className="above-game flex justify-center items-center gap-2">
                 <button
                     className="game-button"
                     onClick={() => onReplay("playing again")}
