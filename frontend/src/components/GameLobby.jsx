@@ -4,8 +4,10 @@ import MyLeaderboardIcon_B from "../assets/LI-B.png"; // <-- این خط را ا
 import MyLeaderboardIcon_G from "../assets/LI-G.png"; // <-- این خط را اضافه کنید
 import {
     ClipboardIcon,
-    CubeTransparentIcon, // <-- این خط را اضافه کنید
-    UserGroupIcon, // <-- این خط را اضافه کنید
+    CubeTransparentIcon,
+    UserGroupIcon,
+    GiftIcon, // <-- این خط را اضافه کنید
+    XMarkIcon, // <-- این خط را اضافه کنید
 } from "@heroicons/react/24/outline";
 
 const GameLobby = ({
@@ -256,9 +258,63 @@ const GameLobby = ({
             </div>
 
             {/* مودال دعوت دوستان (بدون تغییر) */}
+            {/* مودال دعوت دوستان با طراحی جدید و حرفه‌ای */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 animate-fade-in">
-                    {/* ... محتوای مودال بدون تغییر ... */}
+                    <div className="relative w-full max-w-sm bg-slate-800/50 backdrop-blur-xl rounded-2xl shadow-2xl p-6 text-white border border-slate-700">
+                        {/* دکمه بستن مودال در گوشه */}
+                        <button
+                            onClick={() => setIsModalOpen(false)}
+                            className="absolute top-3 right-3 text-slate-400 hover:text-white transition-colors"
+                        >
+                            <XMarkIcon className="h-6 w-6" />
+                        </button>
+
+                        <div className="text-center">
+                            {/* آیکون هدیه برای جذابیت بیشتر */}
+                            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 mb-4 shadow-lg shadow-yellow-500/30">
+                                <GiftIcon className="h-9 w-9 text-white" />
+                            </div>
+
+                            <h2 className="text-2xl font-bold text-white mb-2">
+                                Invite & Earn Rewards
+                            </h2>
+                            <p className="text-slate-300 mb-6">
+                                Share your personal link with friends. You'll
+                                both get rewards when they join!
+                            </p>
+
+                            {/* بخش لینک دعوت */}
+                            <div className="bg-slate-900/60 rounded-lg p-3 text-left mb-5">
+                                <label className="text-xs text-slate-400 font-bold">
+                                    YOUR INVITE LINK
+                                </label>
+                                <p className="text-sm text-yellow-300 break-words mt-1">
+                                    {`https://t.me/${
+                                        userData.bot_username ||
+                                        "Momis_2048_bot"
+                                    }?start=invite_${userData.id}`}
+                                </p>
+                            </div>
+
+                            {/* دکمه کپی کردن لینک */}
+                            <button
+                                onClick={handleCopyLink}
+                                className={`w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-lg font-bold transition-all duration-300 shadow-lg ${
+                                    copied
+                                        ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-green-500/30"
+                                        : "bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white shadow-yellow-500/30"
+                                }`}
+                            >
+                                <ClipboardIcon className="h-5 w-5" />
+                                <span>
+                                    {copied
+                                        ? "Copied to Clipboard!"
+                                        : "Copy Invite Link"}
+                                </span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

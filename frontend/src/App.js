@@ -6,8 +6,6 @@ import React, {
     Suspense,
 } from "react";
 
-
-
 import DefaultAvatar from "./assets/default-avatar.png"; // مسیر را چک کنید
 import { motion, AnimatePresence } from "framer-motion";
 import {
