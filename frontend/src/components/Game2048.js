@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { playSound } from "../utils/SoundManager"; // <-- این خط را اضافه کنید
 
 import "./Game2048.css";
-import { SeededRandom } from './SeededRandom'; 
+import { SeededRandom } from "./SeededRandom";
+import { useSwipeable } from "react-swipeable"; // +++ این خط را اضافه کنید +++
 
 const createEmptyGrid = () =>
     Array.from({ length: 4 }, () => Array(4).fill(null));
@@ -124,9 +125,15 @@ const Game2048 = ({
 
     const setupGame = useCallback(() => {
         let tempGrid = createEmptyGrid();
-        const firstTileResult = addRandomTile(tempGrid, seededRandomRef.current);
+        const firstTileResult = addRandomTile(
+            tempGrid,
+            seededRandomRef.current
+        );
         tempGrid = firstTileResult.grid;
-        const secondTileResult = addRandomTile(tempGrid, seededRandomRef.current);
+        const secondTileResult = addRandomTile(
+            tempGrid,
+            seededRandomRef.current
+        );
 
         setGrid(secondTileResult.grid);
         setScore(0);
@@ -162,8 +169,11 @@ const Game2048 = ({
                         playSound("move");
                     }
                 }
-                
-                const { grid: gridWithNewTile, newTileData } = addRandomTile(newGrid, seededRandomRef.current);
+
+                const { grid: gridWithNewTile, newTileData } = addRandomTile(
+                    newGrid,
+                    seededRandomRef.current
+                );
                 const updatedScore = score + newScore;
 
                 setGrid(gridWithNewTile);
@@ -174,15 +184,20 @@ const Game2048 = ({
                 }
 
                 const directionMap = {
-                    0: "left", 1: "up", 2: "right", 3: "down",
+                    0: "left",
+                    1: "up",
+                    2: "right",
+                    3: "down",
                 };
                 const newMove = directionMap[direction];
-                
+
                 const newMovesArray = [...moves, newMove];
-                const newTilesArray = [...allNewTiles, newTileData].filter(Boolean);
+                const newTilesArray = [...allNewTiles, newTileData].filter(
+                    Boolean
+                );
 
                 if (newMovesArray.length >= 2000) {
-                    if (typeof onSaveMoves === 'function') {
+                    if (typeof onSaveMoves === "function") {
                         onSaveMoves(updatedScore, {
                             moves: newMovesArray,
                             newTiles: newTilesArray,
@@ -199,7 +214,7 @@ const Game2048 = ({
                     if (!isMuted) playSound("gameOver");
 
                     setGameOver(true);
-                    if (typeof onGameOver === 'function') {
+                    if (typeof onGameOver === "function") {
                         onGameOver(updatedScore, {
                             moves: newMovesArray,
                             newTiles: newTilesArray,
@@ -208,8 +223,31 @@ const Game2048 = ({
                 }
             }
         },
-        [grid, score, bestScore, isGameOver, onGameOver, onSaveMoves, moves, allNewTiles, isMuted]
+        [
+            grid,
+            score,
+            bestScore,
+            isGameOver,
+            onGameOver,
+            onSaveMoves,
+            moves,
+            allNewTiles,
+            isMuted,
+        ]
     );
+
+    // +++ این بلاک کد را اینجا اضافه کنید +++
+    const swipeHandlers = useSwipeable({
+        // تابع processMove شما اعداد را به عنوان ورودی می‌گیرد:
+        // 0: چپ, 1: بالا, 2: راست, 3: پایین
+        onSwipedUp: () => processMove(1),
+        onSwipedDown: () => processMove(3),
+        onSwipedLeft: () => processMove(0),
+        onSwipedRight: () => processMove(2),
+        preventScrollOnSwipe: true, // از اسکرول شدن صفحه جلوگیری می‌کند
+        trackMouse: true, // برای تست با ماوس در کامپیوتر
+    });
+    // +++ پایان بلاک کد جدید +++
 
     const handleKeyDown = useCallback(
         (e) => {
@@ -253,7 +291,10 @@ const Game2048 = ({
                 </div>
             </div>
             <div className="above-game">
-                <button className="game-button" onClick={() => onReplay("playing again")}>
+                <button
+                    className="game-button"
+                    onClick={() => onReplay("playing again")}
+                >
                     New Game
                 </button>
                 <button className="game-button" onClick={onToggleMute}>
@@ -263,7 +304,7 @@ const Game2048 = ({
                     Home
                 </button>
             </div>
-            <div className="game-container">
+            <div {...swipeHandlers} className="game-container touch-none">
                 {isGameOver && (
                     <div className="game-message">
                         <p>Game Over!</p>
@@ -285,39 +326,6 @@ const Game2048 = ({
                             <div className="tile-inner">{tile.value}</div>
                         </div>
                     ))}
-                </div>
-            </div>
-            <div className="dpad-controls">
-                <div className="dpad-row">
-                    <button
-                        className="dpad-button"
-                        onClick={() => processMove(1)}
-                    >
-                        ▲
-                    </button>
-                </div>
-                <div className="dpad-row">
-                    <button
-                        className="dpad-button"
-                        onClick={() => processMove(0)}
-                    >
-                        ◄
-                    </button>
-                    <div className="dpad-center"></div>
-                    <button
-                        className="dpad-button"
-                        onClick={() => processMove(2)}
-                    >
-                        ►
-                    </button>
-                </div>
-                <div className="dpad-row">
-                    <button
-                        className="dpad-button"
-                        onClick={() => processMove(3)}
-                    >
-                        ▼
-                    </button>
                 </div>
             </div>
         </div>
