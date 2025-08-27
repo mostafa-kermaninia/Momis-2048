@@ -368,7 +368,7 @@ app.get("/api/referral-leaderboard", async (req, res) => {
                 "referrer.username",
             ], // بر اساس دعوت‌کننده گروه‌بندی می‌کنیم
             order: [[sequelize.literal("referral_count"), "DESC"]], // بر اساس تعداد دعوت مرتب می‌کنیم
-            limit: 5, // فقط ۵ نفر اول
+            limit: 3, // فقط 3 نفر اول
             raw: true,
         });
 
