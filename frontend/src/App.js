@@ -172,11 +172,10 @@ function App() {
     const startGame = useCallback(
         async (eventId) => {
             console.log(`[App.js] Starting Game for event: ${eventId}`);
-            if (eventId !== "playing again"){
+            if (eventId !== "playing again") {
                 setCurrentGameEventId(eventId);
                 fetchBestScore(eventId, token);
-            } else 
-                eventId = currentGameEventId;
+            } else eventId = currentGameEventId;
 
             if (!isAuthenticated || !token) {
                 setError("Please authenticate first");
@@ -199,8 +198,7 @@ function App() {
                 }
 
                 const data = await response.json();
-                setSeed(data.seed);   
-
+                setSeed(data.seed);
             } catch (err) {
                 console.error("Error starting game:", err);
                 setError("Failed to start a new game.");
@@ -210,7 +208,14 @@ function App() {
             setFinalScore(null);
             setView("game");
         },
-        [setSeed, isAuthenticated, token, fetchBestScore, setCurrentGameEventId, currentGameEventId]
+        [
+            setSeed,
+            isAuthenticated,
+            token,
+            fetchBestScore,
+            setCurrentGameEventId,
+            currentGameEventId,
+        ]
     );
 
     const authenticateUser = useCallback(async () => {
@@ -267,7 +272,6 @@ function App() {
             const storedToken = localStorage.getItem("jwtToken");
             const storedUserData = localStorage.getItem("userData");
 
-
             if (tg && tg.initData) {
                 console.log("Telegram initData found. Authenticating...");
                 await authenticateUser(); // authenticateUser خودش view را به 'lobby' یا 'auth' تغییر می‌دهد
@@ -283,7 +287,6 @@ function App() {
                 return;
             }
 
-
             console.warn("Running in development mode.");
             // در حالت تست، مستقیم به لابی برو
             setIsAuthenticated(true);
@@ -295,6 +298,7 @@ function App() {
             if (tg) {
                 tg.ready();
                 tg.expand();
+                tg.isVerticalSwipesEnabled = false;
             }
             initApp();
         }, 100); // 100 میلی‌ثانیه تاخیر
@@ -457,7 +461,7 @@ function App() {
                         initialBestScore={bestScore}
                         isMuted={isMuted}
                         onToggleMute={handleToggleMute} // <-- prop جدید
-                        seed={seed}// <-- prop جدید
+                        seed={seed} // <-- prop جدید
                     />
                 </div>
             ),
