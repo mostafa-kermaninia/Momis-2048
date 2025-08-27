@@ -9,6 +9,8 @@ import {
     GiftIcon, // <-- این خط را اضافه کنید
     XMarkIcon, // <-- این خط را اضافه کنید
 } from "@heroicons/react/24/outline";
+import TopInviterLeaderboard from "./TopInviterLeaderboard"; // کامپوننت لیدربرد را ایمپورت کنید
+const API_BASE = "https://new2048.momis.studio/api"; // یا از props بگیرید
 
 const GameLobby = ({
     onGameStart,
@@ -215,7 +217,7 @@ const GameLobby = ({
                                     Total Invited Friends: {invitedNum}
                                 </h2>
                                 <p className="text-sm text-yellow-200/80 mb-4">
-                                    Invite friends and earn rewards together!
+                                    Invite friends and earn rewards!
                                 </p>
                                 <button
                                     onClick={() => setIsModalOpen(true)}
@@ -224,6 +226,7 @@ const GameLobby = ({
                                     Get Invite Link
                                 </button>
                             </div>
+                            <TopInviterLeaderboard API_BASE={API_BASE} />
                         </>
                     )}
                 </div>

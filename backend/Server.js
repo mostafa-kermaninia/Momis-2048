@@ -62,27 +62,32 @@ async function getActiveReferredFriendsCount(currentUserId) {
     try {
         const invitedNum = await User.count({
             where: {
-                referrerTelegramId: currentUserId // کاربرانی که currentUserId آنها را دعوت کرده است
+                referrerTelegramId: currentUserId, // کاربرانی که currentUserId آنها را دعوت کرده است
             },
-            include: [{
-                model: Score,
-                as: 'scores', // از alias 'Scores' که در db.js تعریف شده، استفاده می‌کنیم
-                attributes: [], // نیازی به واکشی فیلدهای Score نیست، فقط برای شرط join استفاده می‌شود
-                required: true // این شرط تضمین می‌کند که کاربر حداقل یک Score داشته باشد
-            }],
+            include: [
+                {
+                    model: Score,
+                    as: "scores", // از alias 'Scores' که در db.js تعریف شده، استفاده می‌کنیم
+                    attributes: [], // نیازی به واکشی فیلدهای Score نیست، فقط برای شرط join استفاده می‌شود
+                    required: true, // این شرط تضمین می‌کند که کاربر حداقل یک Score داشته باشد
+                },
+            ],
             distinct: true, // تضمین می‌کند که هر کاربر فقط یک بار شمارش شود (در صورت وجود چندین Score)
         });
 
-        console.log(`User ${currentUserId} has invited ${invitedNum} active friends.`);
+        console.log(
+            `User ${currentUserId} has invited ${invitedNum} active friends.`
+        );
         return invitedNum;
-
     } catch (error) {
-        console.error(`Error fetching active referred friends count for user ${currentUserId}:`, error);
+        console.error(
+            `Error fetching active referred friends count for user ${currentUserId}:`,
+            error
+        );
         // در صورت بروز خطا، می‌توانید 0 یا مقدار دیگری را برگردانید
         return 0;
     }
 }
-
 
 app.post("/api/telegram-auth", async (req, res) => {
     // --- لاگ تشخیصی برای دیدن مبدا درخواست ---
@@ -139,7 +144,6 @@ app.post("/api/telegram-auth", async (req, res) => {
             { expiresIn: "1d" }
         );
 
-
         logger.info(`Auth successful for user: ${userData.id}`);
         res.json({ valid: true, user: userData, token });
     } catch (error) {
@@ -158,10 +162,10 @@ app.post("/api/start-game", authenticateToken, (req, res) => {
 
     playersInitData[userId] = {
         startTime: Date.now(),
-        seed: Date.now() + userId + 872445 * Math.random()
+        seed: Date.now() + userId + 872445 * Math.random(),
     };
 
-    res.json({ status: "success" , seed: playersInitData[userId].seed});
+    res.json({ status: "success", seed: playersInitData[userId].seed });
 });
 
 app.post("/api/saveScenario", authenticateToken, async (req, res) => {
@@ -267,15 +271,15 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
         // مرحله ۳: بازی را در سرور با سناریوی کامل شبیه‌سازی می‌کنیم
         // ❗️ تابع simulateGameAndGetScore باید بتواند gameScenario را بپذیرد
         const serverCalculatedScore = simulateGameAndGetScore(
-            gameSessions[userId], playersInitData[userId].seed
+            gameSessions[userId],
+            playersInitData[userId].seed
         );
 
         if (!playersInitData[userId] || !gameSessions[userId]) {
             logger.info(`[LACK OF INFO]: skip saving score for: ${userId}`);
             return res.status(400).json({
                 status: "start time not found",
-                message:
-                    "Gameplay start time not found. Please start again",
+                message: "Gameplay start time not found. Please start again",
             });
         }
 
@@ -328,7 +332,56 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
         });
     }
 });
+app.get("/api/referral-leaderboard", async (req, res) => {
+    logger.info("Fetching referral leaderboard...");
+    try {
+        // از کوئری Sequelize که قبلاً آماده کردیم استفاده می‌کنیم
+        const topReferrers = await User.findAll({
+            attributes: [
+                // اطلاعات کاربری که دعوت کرده است (referrer) را انتخاب می‌کنیم
+                [sequelize.col("referrer.firstName"), "firstName"],
+                [sequelize.col("referrer.username"), "username"],
+                // تعداد کاربرانی که توسط او دعوت شده‌اند را می‌شماریم
+                [
+                    sequelize.fn("COUNT", sequelize.col("User.telegramId")),
+                    "referral_count",
+                ],
+            ],
+            include: [
+                {
+                    model: User,
+                    as: "referrer", // این 'as' باید با چیزی که در مدل User تعریف شده مطابقت داشته باشد
+                    attributes: [], // به فیلدهای اضافی از اینجا نیازی نداریم
+                    required: true, // تضمین می‌کند که فقط referrer ها در نتیجه باشند
+                },
+            ],
+            where: {
+                // شرط می‌گذاریم که کاربر حتما توسط کسی دعوت شده باشد
+                referrerTelegramId: {
+                    [sequelize.Op.ne]: null,
+                },
+            },
+            group: [
+                "referrer.telegramId",
+                "referrer.firstName",
+                "referrer.username",
+            ], // بر اساس دعوت‌کننده گروه‌بندی می‌کنیم
+            order: [[sequelize.literal("referral_count"), "DESC"]], // بر اساس تعداد دعوت مرتب می‌کنیم
+            limit: 5, // فقط ۵ نفر اول
+            raw: true,
+        });
 
+        res.status(200).json(topReferrers);
+    } catch (error) {
+        logger.error(`Referral leaderboard error: ${error.message}`, {
+            stack: error.stack,
+        });
+        res.status(500).json({
+            status: "error",
+            message: "Internal server error on referral leaderboard",
+        });
+    }
+});
 app.get("/api/leaderboard", authenticateToken, async (req, res) => {
     try {
         // شناسه‌ی کاربر فعلی از توکن گرفته می‌شود
@@ -439,7 +492,7 @@ app.get("/api/leaderboard", authenticateToken, async (req, res) => {
     }
 });
 
-app.get("/api/events", authenticateToken, async(req, res) => {
+app.get("/api/events", authenticateToken, async (req, res) => {
     const userId = req.user.userId;
     const activeEvents = [];
     if (process.env.ONTON_EVENT_UUID) {
@@ -451,7 +504,11 @@ app.get("/api/events", authenticateToken, async(req, res) => {
     }
     const invitedNum = await getActiveReferredFriendsCount(userId);
 
-    res.json({ invitedNum: invitedNum, status: "success", events: activeEvents });
+    res.json({
+        invitedNum: invitedNum,
+        status: "success",
+        events: activeEvents,
+    });
 });
 
 /**
