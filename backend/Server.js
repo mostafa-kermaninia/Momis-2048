@@ -336,43 +336,21 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
 app.get("/api/referral-leaderboard", async (req, res) => {
     logger.info("Fetching referral leaderboard...");
     try {
-        const topReferrers = await User.findAll({
-            attributes: [
-                [sequelize.col("referrer.firstName"), "firstName"],
-                [sequelize.col("referrer.username"), "username"],
-                [
-                    sequelize.fn("COUNT", sequelize.fn("DISTINCT", sequelize.col("User.id"))),
-                    "referral_count",
-                ],
-            ],
-            include: [
-                {
-                    model: User,
-                    as: "referrer",
-                    attributes: [],
-                    required: true,
-                }
-            ],
-            where: {
-                referrerTelegramId: {
-                    [Op.ne]: null,
-                },
-                id: {
-                    [Op.in]: sequelize.literal(`(
-                        SELECT DISTINCT User.id 
-                        FROM Users AS User 
-                        INNER JOIN Scores ON User.telegramId = Scores.userTelegramId 
-                        WHERE User.referrerTelegramId IS NOT NULL
-                    )`)
-                }
-            },
-            group: ["User.referrerTelegramId"],
-            order: [[sequelize.literal("referral_count"), "DESC"]],
-            limit: 3,
-            raw: true,
-        });
+        const [results] = await sequelize.query(`
+            SELECT 
+                u.firstName as firstName,
+                u.username as username,
+                COUNT(DISTINCT u2.telegramId) as referral_count
+            FROM Users u2
+            INNER JOIN Users u ON u2.referrerTelegramId = u.telegramId
+            INNER JOIN Scores s ON u2.telegramId = s.userTelegramId
+            WHERE u2.referrerTelegramId IS NOT NULL
+            GROUP BY u2.referrerTelegramId, u.firstName, u.username
+            ORDER BY referral_count DESC
+            LIMIT 3
+        `);
 
-        res.status(200).json(topReferrers);
+        res.status(200).json(results);
     } catch (error) {
         logger.error(`Referral leaderboard error: ${error.message}`, {
             stack: error.stack,
