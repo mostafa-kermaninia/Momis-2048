@@ -336,13 +336,10 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
 app.get("/api/referral-leaderboard", async (req, res) => {
     logger.info("Fetching referral leaderboard...");
     try {
-        // از کوئری Sequelize که قبلاً آماده کردیم استفاده می‌کنیم
         const topReferrers = await User.findAll({
             attributes: [
-                // اطلاعات کاربری که دعوت کرده است (referrer) را انتخاب می‌کنیم
                 [sequelize.col("referrer.firstName"), "firstName"],
                 [sequelize.col("referrer.username"), "username"],
-                // تعداد کاربرانی که توسط او دعوت شده‌اند را می‌شماریم
                 [
                     sequelize.fn("COUNT", sequelize.col("User.telegramId")),
                     "referral_count",
@@ -351,9 +348,9 @@ app.get("/api/referral-leaderboard", async (req, res) => {
             include: [
                 {
                     model: User,
-                    as: "referrer", // این 'as' باید با چیزی که در مدل User تعریف شده مطابقت داشته باشد
-                    attributes: [], // به فیلدهای اضافی از اینجا نیازی نداریم
-                    required: true, // تضمین می‌کند که فقط referrer ها در نتیجه باشند
+                    as: "referrer",
+                    attributes: [],
+                    required: true,
                 },
                 {
                     model: Score,
@@ -363,18 +360,17 @@ app.get("/api/referral-leaderboard", async (req, res) => {
                 }
             ],
             where: {
-                // شرط می‌گذاریم که کاربر حتما توسط کسی دعوت شده باشد
                 referrerTelegramId: {
                     [Op.ne]: null,
                 },
             },
             group: [
                 "referrer.telegramId",
-                "referrer.firstName",
+                "referrer.firstName", 
                 "referrer.username",
-            ], // بر اساس دعوت‌کننده گروه‌بندی می‌کنیم
-            order: [[sequelize.literal("referral_count"), "DESC"]], // بر اساس تعداد دعوت مرتب می‌کنیم
-            limit: 3, // فقط 3 نفر اول
+            ],
+            order: [[sequelize.literal("referral_count"), "DESC"]],
+            limit: 3,
             raw: true,
         });
 
