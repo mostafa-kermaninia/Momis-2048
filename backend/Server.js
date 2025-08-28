@@ -355,6 +355,12 @@ app.get("/api/referral-leaderboard", async (req, res) => {
                     attributes: [], // به فیلدهای اضافی از اینجا نیازی نداریم
                     required: true, // تضمین می‌کند که فقط referrer ها در نتیجه باشند
                 },
+                {
+                    model: Score,
+                    as: "scores", // اضافه کردن شرط فعالیت
+                    attributes: [],
+                    required: true, // فقط کاربران دارای امتیاز
+                }
             ],
             where: {
                 // شرط می‌گذاریم که کاربر حتما توسط کسی دعوت شده باشد
