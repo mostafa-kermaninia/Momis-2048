@@ -338,8 +338,10 @@ app.get("/api/referral-leaderboard", async (req, res) => {
     try {
         const topReferrers = await User.findAll({
             attributes: [
+                // استفاده از فیلدهای referrer با نام‌های مشخص
                 [sequelize.col("referrer.firstName"), "firstName"],
                 [sequelize.col("referrer.username"), "username"],
+                [sequelize.col("referrer.telegramId"), "telegramId"],
                 [
                     sequelize.fn("COUNT", sequelize.col("User.telegramId")),
                     "referral_count",
@@ -349,15 +351,9 @@ app.get("/api/referral-leaderboard", async (req, res) => {
                 {
                     model: User,
                     as: "referrer",
-                    attributes: [],
+                    attributes: [], // فیلدها از اینجا انتخاب نمی‌شوند
                     required: true,
                 },
-                {
-                    model: Score,
-                    as: "scores", // اضافه کردن شرط فعالیت
-                    attributes: [],
-                    required: true, // فقط کاربران دارای امتیاز
-                }
             ],
             where: {
                 referrerTelegramId: {
@@ -365,8 +361,8 @@ app.get("/api/referral-leaderboard", async (req, res) => {
                 },
             },
             group: [
-                "referrer.telegramId",
-                "referrer.firstName", 
+                "referrer.telegramId", // فقط از فیلدهای referrer برای گروه‌بندی استفاده کنید
+                "referrer.firstName",
                 "referrer.username",
             ],
             order: [[sequelize.literal("referral_count"), "DESC"]],
