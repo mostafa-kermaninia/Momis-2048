@@ -341,7 +341,7 @@ app.get("/api/referral-leaderboard", async (req, res) => {
                 [sequelize.col("referrer.firstName"), "firstName"],
                 [sequelize.col("referrer.username"), "username"],
                 [
-                    sequelize.fn("COUNT", sequelize.fn("DISTINCT", sequelize.col("User.telegramId"))),
+                    sequelize.fn("COUNT", sequelize.fn("DISTINCT", sequelize.col("User.id"))),
                     "referral_count",
                 ],
             ],
@@ -351,20 +351,22 @@ app.get("/api/referral-leaderboard", async (req, res) => {
                     as: "referrer",
                     attributes: [],
                     required: true,
-                },
-                {
-                    model: Score,
-                    as: "scores",
-                    attributes: [],
-                    required: true, // فقط کاربران دارای امتیاز
                 }
             ],
             where: {
                 referrerTelegramId: {
                     [Op.ne]: null,
                 },
+                id: {
+                    [Op.in]: sequelize.literal(`(
+                        SELECT DISTINCT User.id 
+                        FROM Users AS User 
+                        INNER JOIN Scores ON User.telegramId = Scores.userTelegramId 
+                        WHERE User.referrerTelegramId IS NOT NULL
+                    )`)
+                }
             },
-            group: ["referrer.telegramId"],
+            group: ["User.referrerTelegramId"],
             order: [[sequelize.literal("referral_count"), "DESC"]],
             limit: 3,
             raw: true,
