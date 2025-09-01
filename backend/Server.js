@@ -336,43 +336,21 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
 app.get("/api/referral-leaderboard", async (req, res) => {
     logger.info("Fetching referral leaderboard...");
     try {
-        // از کوئری Sequelize که قبلاً آماده کردیم استفاده می‌کنیم
-        const topReferrers = await User.findAll({
-            attributes: [
-                // اطلاعات کاربری که دعوت کرده است (referrer) را انتخاب می‌کنیم
-                [sequelize.col("referrer.firstName"), "firstName"],
-                [sequelize.col("referrer.username"), "username"],
-                // تعداد کاربرانی که توسط او دعوت شده‌اند را می‌شماریم
-                [
-                    sequelize.fn("COUNT", sequelize.col("User.telegramId")),
-                    "referral_count",
-                ],
-            ],
-            include: [
-                {
-                    model: User,
-                    as: "referrer", // این 'as' باید با چیزی که در مدل User تعریف شده مطابقت داشته باشد
-                    attributes: [], // به فیلدهای اضافی از اینجا نیازی نداریم
-                    required: true, // تضمین می‌کند که فقط referrer ها در نتیجه باشند
-                },
-            ],
-            where: {
-                // شرط می‌گذاریم که کاربر حتما توسط کسی دعوت شده باشد
-                referrerTelegramId: {
-                    [Op.ne]: null,
-                },
-            },
-            group: [
-                "referrer.telegramId",
-                "referrer.firstName",
-                "referrer.username",
-            ], // بر اساس دعوت‌کننده گروه‌بندی می‌کنیم
-            order: [[sequelize.literal("referral_count"), "DESC"]], // بر اساس تعداد دعوت مرتب می‌کنیم
-            limit: 3, // فقط 3 نفر اول
-            raw: true,
-        });
+        const [results] = await sequelize.query(`
+            SELECT 
+                u.firstName as firstName,
+                u.username as username,
+                COUNT(DISTINCT u2.telegramId) as referral_count
+            FROM Users u2
+            INNER JOIN Users u ON u2.referrerTelegramId = u.telegramId
+            INNER JOIN Scores s ON u2.telegramId = s.userTelegramId
+            WHERE u2.referrerTelegramId IS NOT NULL
+            GROUP BY u2.referrerTelegramId, u.firstName, u.username
+            ORDER BY referral_count DESC
+            LIMIT 3
+        `);
 
-        res.status(200).json(topReferrers);
+        res.status(200).json(results);
     } catch (error) {
         logger.error(`Referral leaderboard error: ${error.message}`, {
             stack: error.stack,
