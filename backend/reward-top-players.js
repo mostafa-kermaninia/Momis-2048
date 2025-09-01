@@ -109,7 +109,7 @@ async function findAndRewardTopPlayers(eventId) {
                 const userName = user?.firstName || `Player ${userId}`;
                 
                 logger.info(`Processing NON-WINNER: User ${userId} (${userName}) with score ${participant.max_score}`);
-                // await sendConsolationMessage(userId, userName, participant.max_score);
+                await sendConsolationMessage(userId, userName, participant.max_score);
             }
         }
 
