@@ -2,7 +2,6 @@ import React, {
     useState,
     useEffect,
     useCallback,
-    useMemo,
     Suspense,
 } from "react";
 

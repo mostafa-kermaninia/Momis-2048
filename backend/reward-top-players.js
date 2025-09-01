@@ -1,6 +1,7 @@
 // backend/reward-top-players.js
 
-
+// در کنار بقیه require ها
+const { Op } = require('sequelize');
 require('dotenv').config();
 const { Score, User, sequelize } = require('./DataBase/models');
 const { rewardUser } = require('./ontonApi');
@@ -108,7 +109,7 @@ async function findAndRewardTopPlayers(eventId) {
                 const userName = user?.firstName || `Player ${userId}`;
                 
                 logger.info(`Processing NON-WINNER: User ${userId} (${userName}) with score ${participant.max_score}`);
-                await sendConsolationMessage(userId, userName, participant.max_score);
+                // await sendConsolationMessage(userId, userName, participant.max_score);
             }
         }
 
@@ -121,12 +122,11 @@ async function findAndRewardTopPlayers(eventId) {
 
 // Allow script to be run from the command line
 if (require.main === module) {
-    const eventIdFromArgs = process.argv[2];
-    if (!eventIdFromArgs) {
-        console.log("Usage: node reward-top-players.js <event-id>");
+    // Read the eventId from the .env file
+    const eventIdFromEnv = process.env.ONTON_EVENT_UUID;
+    if (!eventIdFromEnv) {
+        logger.error("CRITICAL: ONTON_EVENT_UUID is not set in your .env file. Aborting.");
         process.exit(1);
     }
-    findAndRewardTopPlayers(eventIdFromArgs);
+    findAndRewardTopPlayers(eventIdFromEnv);
 }
-
-module.exports = { findAndRewardTopPlayers };
