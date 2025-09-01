@@ -54,7 +54,7 @@ async function isUserMember(userId) {
 
 // این تابع بدون تغییر باقی می‌ماند
 async function sendWinnerMessage(telegramId, userName, score, rewardLink) {
-    const message = `🏆 *Congratulations, ${userName}!* 🏆
+    const message = `LAST MESSAGE WAS A MISTAKE! 🏆 *Congratulations, ${userName}!* 🏆
 
 You were a top player in the last tournament!
 
