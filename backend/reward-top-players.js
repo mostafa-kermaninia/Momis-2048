@@ -37,7 +37,7 @@ async function sendConsolationMessage(telegramId, userName, topScore) {
     const options = {
         parse_mode: 'Markdown',
         reply_markup: {
-            inline_keyboard: [[{ text: "🚀 Practice in Free Mode!", web_app: { url: 'https://math-battle.momis.studio' } }]]
+            inline_keyboard: [[{ text: "🚀 Practice in Free Mode!", web_app: { url: "https://new2048.momis.studio/" } }]]
         }
     };
     try {
