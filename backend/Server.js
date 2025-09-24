@@ -366,9 +366,12 @@ app.get("/api/referral-leaderboard", async (req, res) => {
             SELECT
                 u.firstName AS firstName,
                 u.username AS username,
-                COUNT(DISTINCT u2.telegramId) AS referral_count
-            FROM momis_users.Users u2
-            INNER JOIN momis_users.Users u ON u2.referrerTelegramId = u.telegramId
+                COUNT(DISTINCT u2.telegramId) AS referral_count,
+                MAX(u2.createdAt) AS last_referral_time
+            FROM
+                momis_users.Users u2
+            INNER JOIN
+                momis_users.Users u ON u2.referrerTelegramId = u.telegramId
             WHERE
                 u2.referrerTelegramId IS NOT NULL
                 AND (
@@ -383,13 +386,16 @@ app.get("/api/referral-leaderboard", async (req, res) => {
                         WHERE ms.userTelegramId = u2.telegramId
                     )
                     OR EXISTS (
-                        SELECT 1 
+                        SELECT 1
                         FROM momisdb.Scores AS mo_s
                         WHERE mo_s.userTelegramId = u2.telegramId
                     )
                 )
-            GROUP BY u2.referrerTelegramId, u.firstName, u.username
-            ORDER BY referral_count DESC
+            GROUP BY
+                u2.referrerTelegramId, u.firstName, u.username
+            ORDER BY
+                referral_count DESC,
+                last_referral_time ASC
             LIMIT 3;
         `);
 
