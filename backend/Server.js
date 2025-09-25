@@ -332,6 +332,15 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
             });
         }
 
+        if (eventId && (!process.env.ONTON_EVENT_UUID || process.env.ONTON_EVENT_UUID !== eventId))
+        {
+            logger.info(`[TOURNAMENT ENDED]: skip saving score for: ${userId}`);
+            return res.status(400).json({
+                status: "tournament_ended",
+                message:
+                    "Sorry tournament has been ended ",
+            });
+        }
         // مرحله ۴: امتیاز محاسبه شده توسط سرور را در دیتابیس ذخیره می‌کنیم
         await Score.create({
             score: serverCalculatedScore,
