@@ -338,7 +338,7 @@ app.post("/api/gameOver", authenticateToken, async (req, res) => {
             return res.status(400).json({
                 status: "tournament_ended",
                 message:
-                    "Sorry tournament is ended ",
+                    "Tournament is ended. Your new score is ignored",
             });
         }
         // مرحله ۴: امتیاز محاسبه شده توسط سرور را در دیتابیس ذخیره می‌کنیم
