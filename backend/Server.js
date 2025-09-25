@@ -69,6 +69,8 @@ async function getActiveReferredFriendsCount(currentUserId) {
             FROM
                 momis_users.Users AS u
             WHERE
+                u.createdAt > '2025-09-25 20:00:00' AND
+                u.createdAt < '2025-09-28 20:00:00' AND
                 u.referrerTelegramId = :currentUserId
                 AND (
                   EXISTS (
@@ -373,6 +375,8 @@ app.get("/api/referral-leaderboard", async (req, res) => {
             INNER JOIN
                 momis_users.Users u ON u2.referrerTelegramId = u.telegramId
             WHERE
+                u2.createdAt > '2025-09-25 20:00:00' AND
+                u2.createdAt < '2025-09-28 20:00:00' AND
                 u2.referrerTelegramId IS NOT NULL
                 AND (
                     EXISTS (
