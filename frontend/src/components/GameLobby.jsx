@@ -220,7 +220,7 @@ const GameLobby = ({
                                                 Next tournament starts in
                                             </h2>
                                             {time && (
-                                                <div className="text-center text-green-400 font-bold font-mono mt-2">
+                                                <div className="text-center text-green-400 font-extrabold text-3xl font-mono mt-2">
                                                     {time.isEnded ? (
                                                         <span className="whitespace-nowrap">Tournament started! 🏁</span>
                                                     ) : (
